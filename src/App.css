@@ -36,3 +36,8 @@
     transform: rotate(360deg);
   }
 }
+
+.grid line {
+  stroke: #d3d3d3; /* Light grey color; adjust as needed */
+  stroke-opacity: 0.7; /* Optional: adjust the visibility */
+}
