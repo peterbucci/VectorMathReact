@@ -20,10 +20,22 @@ const App = () => {
 
   const performOperation = useCallback(() => {
     if (!vectorStorageRef.current.a || !vectorStorageRef.current.b) return;
-    graphInstanceRef.current.updateVectorSum(
-      vectorStorageRef.current.a,
-      vectorStorageRef.current.b
-    );
+    switch (graphInstanceRef.current.selectedOperation) {
+      case "Addition":
+        graphInstanceRef.current.updateVectorSum(
+          vectorStorageRef.current.a,
+          vectorStorageRef.current.b
+        );
+        break;
+      case "Subtraction":
+        graphInstanceRef.current.updateVectorSubtraction(
+          vectorStorageRef.current.a,
+          vectorStorageRef.current.b
+        );
+        break;
+      default:
+        break;
+    }
   }, []);
 
   // Handles updating the vector's components, magnitude, and angle
@@ -76,7 +88,7 @@ const App = () => {
     graphInstanceRef.current = newGraph;
 
     // Create vectors
-    vectorStorageRef.current.b = createVectorHandler(
+    vectorStorageRef.current.a = createVectorHandler(
       "a",
       "blue",
       15,
@@ -85,7 +97,7 @@ const App = () => {
       20,
       false
     );
-    vectorStorageRef.current.a = createVectorHandler(
+    vectorStorageRef.current.b = createVectorHandler(
       "b",
       "green",
       15,
@@ -207,7 +219,6 @@ const App = () => {
           onChange={(e) => {
             setSelectedOperation(e.target.value);
             graphInstanceRef.current.selectedOperation = e.target.value;
-            vectorStorageRef.current.b.changeArrowheadDirection(e.target.value);
             performOperation();
           }}
         >

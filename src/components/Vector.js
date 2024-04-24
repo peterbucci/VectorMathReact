@@ -149,19 +149,6 @@ class Vector {
       .attr("fill", color);
   }
 
-  changeArrowheadDirection(operation) {
-    console.log("changing arrowhead direction", operation);
-    const tempStartX = this.startX;
-    const tempStartY = this.startY;
-    const tempEndX = this.endX;
-    const tempEndY = this.endY;
-    this.endX = tempStartX;
-    this.endY = tempStartY;
-    this.startX = tempEndX;
-    this.startY = tempEndY;
-    this.update();
-  }
-
   getLabelText() {
     return `|${this.name}| = ${this.magnitude}`;
   }

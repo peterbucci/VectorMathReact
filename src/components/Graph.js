@@ -101,6 +101,21 @@ class Graph {
     this.vectorSum.update();
   }
 
+  updateVectorSubtraction(vector1, vector2) {
+    const v1x = vector1.endX - vector1.startX; // X component of vector1
+    const v1y = vector1.endY - vector1.startY; // Y component of vector1
+    const v2x = vector2.endX - vector2.startX; // X component of vector2
+    const v2y = vector2.endY - vector2.startY; // Y component of vector2
+
+    // Calculate subtraction components
+    const subX = v1x - v2x;
+    const subY = v1y - v2y;
+
+    this.vectorSum.endX = this.vectorSum.startX + subX;
+    this.vectorSum.endY = this.vectorSum.startY + subY;
+    this.vectorSum.update();
+  }
+
   setVectorSum(vector) {
     this.vectorSum = vector;
   }
