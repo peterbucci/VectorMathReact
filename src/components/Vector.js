@@ -23,6 +23,9 @@ class Vector {
     this.onUpdate = onUpdate; // Callback for when this vector is updated
     this.onSelect = onSelect; // Callback for when this vector is clicked
     this.isSum = isSum; // Flag to determine if this is a sum vector
+    this.magnitude = 0; // Magnitude of the vector
+    this.angle = 0; // Initialize angle to 0
+    this.label = null; // Label element for the vector
     this.draw();
   }
 
@@ -51,6 +54,16 @@ class Vector {
         .attr("fill", "transparent")
         .style("cursor", "pointer")
         .call(d3.drag().on("drag", this.arrowheadDragged.bind(this)));
+
+    // Create and store the label element
+    this.label = this.svg
+      .append("text")
+      .attr("dy", "-0.5em") // Offset the label a bit above the line
+      .attr("text-anchor", "middle")
+      .style("fill", this.color)
+      .text(this.getLabelText());
+
+    this.update(); // Initial update to set correct positions and labels
   }
 
   dragged(event) {
@@ -85,6 +98,30 @@ class Vector {
       .attr("x2", this.endX)
       .attr("y2", this.endY);
     if (!this.isSum) this.arrowhead.attr("cx", this.endX).attr("cy", this.endY);
+
+    // Calculate new magnitude and angle based on current coordinates
+    const dx = this.endX - this.startX;
+    const dy = this.endY - this.startY;
+    this.magnitude = (Math.sqrt(dx * dx + dy * dy) / 10).toFixed(2); // Round to 2 decimal places
+    this.angle = Math.atan2(dy, dx) * (180 / Math.PI); // Angle in degrees
+
+    // Adjust angle for label readability
+    let labelAngle = this.angle;
+    if (labelAngle > 90 && labelAngle < 270) {
+      labelAngle += 180; // Flip text by adding 180 degrees to keep it readable
+    }
+
+    // Update label position and text
+    this.label
+      .attr("x", (this.startX + this.endX) / 2)
+      .attr("y", (this.startY + this.endY) / 2)
+      .attr(
+        "transform",
+        `rotate(${labelAngle},${(this.startX + this.endX) / 2},${
+          (this.startY + this.endY) / 2
+        })`
+      )
+      .text(this.getLabelText());
   }
 
   updateCoordinates(startX, startY, endX, endY) {
@@ -123,6 +160,10 @@ class Vector {
     this.startX = tempEndX;
     this.startY = tempEndY;
     this.update();
+  }
+
+  getLabelText() {
+    return `|${this.name}| = ${this.magnitude}`;
   }
 }
 
