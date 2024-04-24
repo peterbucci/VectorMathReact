@@ -9,39 +9,45 @@ const App = () => {
   const svgContainerRef = useRef(null);
   const graphInstanceRef = useRef(null);
   const vectorStorageRef = useRef({});
+  const [selectedOperation, setSelectedOperation] = useState("Addition");
   const [activeVector, setActiveVector] = useState(null);
-  const [vectorMagnitude, setVectorMagnitude] = useState(0);
-  const [vectorAngle, setVectorAngle] = useState(0);
-  const [vectorXComponent, setVectorXComponent] = useState(0);
-  const [vectorYComponent, setVectorYComponent] = useState(0);
   const [vectorDetails, setVectorDetails] = useState({
-    activeVector: null,
     magnitude: 0,
     angle: 0,
     xComponent: 0,
     yComponent: 0,
   });
 
-  // Handles updating the vector's components, magnitude, and angle
-  const updateVectorDetails = useCallback((vector) => {
-    if (!vector) return;
-    const vectorXComponent = (vector.endX - vector.startX) / 10;
-    const vectorYComponent = (vector.startY - vector.endY) / 10;
-
+  const performOperation = useCallback(() => {
+    if (!vectorStorageRef.current.a || !vectorStorageRef.current.b) return;
     graphInstanceRef.current.updateVectorSum(
       vectorStorageRef.current.a,
       vectorStorageRef.current.b
     );
-
-    const angle =
-      Math.atan2(vectorYComponent, vectorXComponent) * (180 / Math.PI);
-    const magnitude = Math.sqrt(vectorXComponent ** 2 + vectorYComponent ** 2);
-
-    setVectorXComponent(vectorXComponent);
-    setVectorYComponent(vectorYComponent);
-    setVectorAngle(angle);
-    setVectorMagnitude(magnitude);
   }, []);
+
+  // Handles updating the vector's components, magnitude, and angle
+  const updateVectorDetails = useCallback(
+    (vector) => {
+      if (!vector) return;
+      const x = (vector.endX - vector.startX) / 10;
+      const y = (vector.startY - vector.endY) / 10;
+
+      performOperation();
+
+      const angle = Math.atan2(y, x) * (180 / Math.PI);
+      const magnitude = Math.sqrt(x ** 2 + y ** 2);
+
+      setVectorDetails((prev) => ({
+        ...prev,
+        magnitude,
+        angle,
+        xComponent: x,
+        yComponent: y,
+      }));
+    },
+    [performOperation]
+  );
 
   useEffect(() => {
     const vector = vectorStorageRef.current[activeVector];
@@ -60,7 +66,9 @@ const App = () => {
   );
 
   useEffect(() => {
-    if (!svgContainerRef.current) return;
+    if (!svgContainerRef.current || graphInstanceRef.current) return;
+
+    console.log("Creating graph");
     d3.select(svgContainerRef.current).selectAll("*").remove();
 
     const newGraph = new Graph(svgContainerRef.current, 500, 300);
@@ -68,25 +76,47 @@ const App = () => {
     graphInstanceRef.current = newGraph;
 
     // Create vectors
-    vectorStorageRef.current.a = createVectorHandler("a", 0, 0, 3, 6, false);
-    vectorStorageRef.current.b = createVectorHandler("b", 0, 0, 11, 6, false);
-    vectorStorageRef.current.s = createVectorHandler("s", 0, 0, 0, 0, true);
+    vectorStorageRef.current.a = createVectorHandler(
+      "a",
+      "blue",
+      0,
+      0,
+      3,
+      6,
+      false
+    );
+    vectorStorageRef.current.b = createVectorHandler(
+      "b",
+      "green",
+      0,
+      0,
+      11,
+      6,
+      false
+    );
+    vectorStorageRef.current.s = createVectorHandler(
+      "s",
+      "red",
+      0,
+      0,
+      0,
+      0,
+      true
+    );
 
     newGraph.setVectorSum(vectorStorageRef.current.s);
-    newGraph.updateVectorSum(
-      vectorStorageRef.current.a,
-      vectorStorageRef.current.b
-    );
-  }, [createVectorHandler]);
+    performOperation();
+  }, [createVectorHandler, updateVectorDetails, performOperation]);
 
   const saveVector = () => {
     const vector = vectorStorageRef.current[activeVector];
-    if (!vector || isNaN(vectorXComponent) || isNaN(vectorYComponent)) return;
+    const { xComponent, yComponent } = vectorDetails;
+    if (!vector || isNaN(xComponent) || isNaN(yComponent)) return;
 
     const updatedVector = {
       ...vector,
-      endX: vector.startX + vectorXComponent * 10,
-      endY: vector.startY - vectorYComponent * 10,
+      endX: vector.startX + xComponent * 10,
+      endY: vector.startY - yComponent * 10,
     };
 
     vectorStorageRef.current[activeVector].updateCoordinates(
@@ -96,61 +126,43 @@ const App = () => {
       updatedVector.endY
     );
 
-    graphInstanceRef.current.updateVectorSum(
-      vectorStorageRef.current.a,
-      vectorStorageRef.current.b
-    );
+    performOperation();
   };
 
-  const handleMagnitudeChange = (event) => {
-    setVectorMagnitude(event.target.value);
-    const magnitude = parseFloat(event.target.value);
-    if (isNaN(magnitude)) return;
-    const angleRadians = Math.atan2(vectorYComponent, vectorXComponent);
+  // Adjust magnitude or angle and update the x and y components accordingly
+  const handleVectorAdjust = (type, value) => {
+    const { xComponent, yComponent } = vectorDetails;
+    const updatedDetails = { ...vectorDetails };
+    const parsedValue = parseFloat(value);
+    let angleRadians, magnitude;
 
-    const newX = Math.cos(angleRadians) * magnitude;
-    const newY = Math.sin(angleRadians) * magnitude;
-
-    setVectorXComponent(newX);
-    setVectorYComponent(newY);
-  };
-
-  const handleAngleChange = (event) => {
-    setVectorAngle(event.target.value);
-    const angleDegrees = parseFloat(event.target.value);
-    if (isNaN(angleDegrees)) return;
-    const magnitude = Math.sqrt(vectorXComponent ** 2 + vectorYComponent ** 2);
-    const angleRadians = angleDegrees * (Math.PI / 180);
-
-    const newX = Math.cos(angleRadians) * magnitude;
-    const newY = Math.sin(angleRadians) * magnitude;
-
-    setVectorXComponent(newX);
-    setVectorYComponent(newY);
-  };
-
-  const handleVectorComponentChange = (dimension, value) => {
-    const vector = vectorStorageRef.current[activeVector];
-    if (!vector) return;
-
-    if (dimension === "X") {
-      setVectorXComponent(value);
-    } else if (dimension === "Y") {
-      setVectorYComponent(value);
+    updatedDetails[type] = value;
+    if (isNaN(parsedValue)) {
+      setVectorDetails(updatedDetails);
+      return;
     }
 
-    const updatedMagnitude = Math.sqrt(
-      Math.pow(dimension === "X" ? value : vectorXComponent, 2) +
-        Math.pow(dimension === "Y" ? value : vectorYComponent, 2)
-    );
+    if (type === "xComponent" || type === "yComponent") {
+      updatedDetails.magnitude = Math.sqrt(
+        updatedDetails.xComponent ** 2 + updatedDetails.yComponent ** 2
+      );
+      updatedDetails.angle = Math.atan2(
+        updatedDetails.yComponent,
+        updatedDetails.xComponent
+      );
+    } else if (type === "magnitude") {
+      magnitude = parsedValue;
+      angleRadians = Math.atan2(yComponent, xComponent);
+      updatedDetails.xComponent = Math.cos(angleRadians) * magnitude;
+      updatedDetails.yComponent = Math.sin(angleRadians) * magnitude;
+    } else if (type === "angle") {
+      angleRadians = parsedValue * (Math.PI / 180);
+      magnitude = Math.sqrt(xComponent ** 2 + yComponent ** 2);
+      updatedDetails.xComponent = Math.cos(angleRadians) * magnitude;
+      updatedDetails.yComponent = Math.sin(angleRadians) * magnitude;
+    }
 
-    const angleRadians = Math.atan2(
-      dimension === "Y" ? value : vectorYComponent,
-      dimension === "X" ? value : vectorXComponent
-    );
-
-    setVectorMagnitude(updatedMagnitude);
-    setVectorAngle((angleRadians * 180) / Math.PI);
+    setVectorDetails(updatedDetails);
   };
 
   return (
@@ -158,37 +170,52 @@ const App = () => {
       <div className="vector-values">
         <div className="toggle-container">
           <button className="toggle-button" onClick={saveVector}>
-            &#x1F4BE;
+            Update
           </button>
         </div>
         <VectorInput
           label="|v|"
-          value={activeVector ? vectorMagnitude : ""}
-          onChange={handleMagnitudeChange}
+          value={activeVector ? vectorDetails.magnitude : ""}
+          onChange={(e) => handleVectorAdjust("magnitude", e.target.value)}
           readOnly={!activeVector || activeVector === "s"}
         />
         <VectorInput
           label="θ"
-          value={activeVector ? vectorAngle : ""}
-          onChange={handleAngleChange}
+          value={activeVector ? vectorDetails.angle : ""}
+          onChange={(e) => handleVectorAdjust("angle", e.target.value)}
           readOnly={!activeVector || activeVector === "s"}
         />
         <VectorInput
           label="v"
           subLabel="x"
-          value={activeVector ? vectorXComponent : ""}
-          onChange={(e) => handleVectorComponentChange("X", e.target.value)}
+          value={activeVector ? vectorDetails.xComponent : ""}
+          onChange={(e) => handleVectorAdjust("xComponent", e.target.value)}
           readOnly={!activeVector || activeVector === "s"}
         />
         <VectorInput
           label="v"
           subLabel="y"
-          value={activeVector ? vectorYComponent : ""}
-          onChange={(e) => handleVectorComponentChange("Y", e.target.value)}
+          value={activeVector ? vectorDetails.yComponent : ""}
+          onChange={(e) => handleVectorAdjust("yComponent", e.target.value)}
           readOnly={!activeVector || activeVector === "s"}
         />
       </div>
       <div ref={svgContainerRef} />
+      <div>
+        <label>Operation: </label>
+        <select
+          value={selectedOperation}
+          onChange={(e) => {
+            setSelectedOperation(e.target.value);
+            graphInstanceRef.current.selectedOperation = e.target.value;
+            vectorStorageRef.current.b.changeArrowheadDirection(e.target.value);
+            performOperation();
+          }}
+        >
+          <option value="Addition">Addition</option>
+          <option value="Subtraction">Subtraction</option>
+        </select>
+      </div>
     </div>
   );
 };

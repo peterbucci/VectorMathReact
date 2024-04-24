@@ -50,8 +50,8 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  width: 450px;
-  margin-left: 20.13px;
+  width: 500px;
+  margin-left: 30px;
   font-size: 12px;
   background-color: #f0f0f0;
   border: 1px solid #bebebe;
@@ -59,16 +59,21 @@
 }
 
 .vector-values > .toggle-container {
-  flex: 0.5;
+  flex: 1;
   margin: 5px;
 }
 
 .vector-values > .toggle-container > .toggle-button {
-  height: 22px;
-  width: 22px;
-  padding: 0;
   border-radius: 2px;
   cursor: pointer;
+}
+
+.vector-values > .toggle-container > .toggle-button:hover {
+  background-color: #e0e0e0;
+}
+
+.vector-values > .toggle-container > .toggle-button:active {
+  background-color: #d0d0d0;
 }
 
 .vector-values > .field-container {

@@ -11,18 +11,18 @@ class Graph {
     this.xScale = d3.scaleLinear().domain([0, 50]).range([0, this.width]);
     this.yScale = d3.scaleLinear().domain([0, 30]).range([this.height, 0]);
     this.vectorSum = null; // Hold the sum vector
+    this.selectedOperation = "Addition";
 
     this.init();
   }
 
   init() {
-    this.creareSvg();
-    this.addArrowhead();
+    this.createSvg();
     this.drawAxes();
     this.drawGridLines();
   }
 
-  creareSvg() {
+  createSvg() {
     this.svg = d3
       .select(this.container)
       .append("svg")
@@ -30,23 +30,6 @@ class Graph {
       .attr("height", this.height + this.margin.top + this.margin.bottom)
       .append("g")
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
-  }
-
-  addArrowhead() {
-    // Add arrowhead to the svg
-    this.svg
-      .append("defs")
-      .append("marker")
-      .attr("id", "arrowhead")
-      .attr("viewBox", "0 -5 10 10") // Set the viewport to contain the arrowhead
-      .attr("refX", 8) // Position of the tip of the arrowhead
-      .attr("refY", 0)
-      .attr("markerWidth", 4) // Marker size relative to the line
-      .attr("markerHeight", 4)
-      .attr("orient", "auto-start-reverse") // Ensures the arrowhead points correctly
-      .append("path")
-      .attr("d", "M0,-5L10,0L0,5Z") // Path for a solid triangle
-      .style("fill", "black");
   }
 
   drawAxes() {

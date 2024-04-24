@@ -2,6 +2,7 @@ import Vector from "../components/Vector";
 
 const createVector = (
   name,
+  color,
   startX,
   startY,
   endX,
@@ -13,6 +14,7 @@ const createVector = (
 ) => {
   return new Vector(
     name,
+    color,
     graph.svg,
     startX * graph.cellSize,
     graph.height - startY * graph.cellSize,
