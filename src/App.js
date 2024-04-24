@@ -76,29 +76,29 @@ const App = () => {
     graphInstanceRef.current = newGraph;
 
     // Create vectors
-    vectorStorageRef.current.a = createVectorHandler(
+    vectorStorageRef.current.b = createVectorHandler(
       "a",
       "blue",
-      0,
-      0,
-      3,
-      6,
+      15,
+      10,
+      15,
+      20,
       false
     );
-    vectorStorageRef.current.b = createVectorHandler(
+    vectorStorageRef.current.a = createVectorHandler(
       "b",
       "green",
-      0,
-      0,
-      11,
-      6,
+      15,
+      20,
+      35,
+      20,
       false
     );
     vectorStorageRef.current.s = createVectorHandler(
       "s",
       "red",
-      0,
-      0,
+      15,
+      10,
       0,
       0,
       true
