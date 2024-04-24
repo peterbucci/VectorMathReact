@@ -173,7 +173,7 @@ const App = () => {
           </button>
         </div>
         <VectorInput
-          label="|v|"
+          label={"|" + (activeVector || "v") + "|"}
           value={activeVector ? vectorDetails.magnitude : ""}
           onChange={(e) => handleVectorAdjust("magnitude", e.target.value)}
           readOnly={!activeVector || activeVector === "s"}
@@ -185,14 +185,14 @@ const App = () => {
           readOnly={!activeVector || activeVector === "s"}
         />
         <VectorInput
-          label="v"
+          label={activeVector || "v"}
           subLabel="x"
           value={activeVector ? vectorDetails.xComponent : ""}
           onChange={(e) => handleVectorAdjust("xComponent", e.target.value)}
           readOnly={!activeVector || activeVector === "s"}
         />
         <VectorInput
-          label="v"
+          label={activeVector || "v"}
           subLabel="y"
           value={activeVector ? vectorDetails.yComponent : ""}
           onChange={(e) => handleVectorAdjust("yComponent", e.target.value)}
