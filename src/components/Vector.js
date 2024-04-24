@@ -8,9 +8,9 @@ class Vector {
     startY,
     endX,
     endY,
+    isSum,
     onUpdate,
-    onSelect,
-    isSum = false
+    onSelect
   ) {
     this.name = name;
     this.svg = svg;
@@ -37,15 +37,7 @@ class Vector {
       .attr("stroke-width", 4)
       .style("cursor", "move")
       .attr("marker-end", "url(#arrowhead)")
-      .on("mousedown", () =>
-        this.onSelect({
-          name: this.name,
-          startX: this.startX,
-          startY: this.startY,
-          endX: this.endX,
-          endY: this.endY,
-        })
-      )
+      .on("mousedown", () => this.onSelect(this.name))
       .call(d3.drag().on("drag", this.dragged.bind(this)));
 
     if (!this.isSum)
@@ -83,6 +75,8 @@ class Vector {
         endX: this.endX,
         endY: this.endY,
       });
+
+    this.onSelect(this.name);
   }
 
   update() {

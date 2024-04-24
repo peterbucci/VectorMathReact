@@ -67,21 +67,8 @@
   height: 22px;
   width: 22px;
   padding: 0;
-  background-color: #ff5500;
-  font-size: 12px;
-  font-weight: bold;
-  color: #ffffff;
-  border: 1px solid #000000;
   border-radius: 2px;
   cursor: pointer;
-}
-
-.vector-values > .toggle-container > .toggle-button:hover {
-  background-color: #ff7700;
-}
-
-.vector-values > .toggle-container > .toggle-button:active {
-  background-color: #ff9900;
 }
 
 .vector-values > .field-container {

@@ -1,162 +1,194 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import Graph from "./components/Graph";
-import Vector from "./components/Vector";
+import VectorInput from "./components/VectorInput";
+import createVector from "./helpers/create_vector";
 import "./styles/App.css";
 
 const App = () => {
-  const d3Container = useRef(null);
-  const graphRef = useRef(null);
-  const vectors = useRef({});
-  const [selectedVector, setSelectedVector] = useState({});
-  const [vectorX, setVectorX] = useState("");
-  const [vectorY, setVectorY] = useState("");
+  const svgContainerRef = useRef(null);
+  const graphInstanceRef = useRef(null);
+  const vectorStorageRef = useRef({});
+  const [activeVector, setActiveVector] = useState(null);
+  const [vectorMagnitude, setVectorMagnitude] = useState(0);
+  const [vectorAngle, setVectorAngle] = useState(0);
+  const [vectorXComponent, setVectorXComponent] = useState(0);
+  const [vectorYComponent, setVectorYComponent] = useState(0);
+  const [vectorDetails, setVectorDetails] = useState({
+    activeVector: null,
+    magnitude: 0,
+    angle: 0,
+    xComponent: 0,
+    yComponent: 0,
+  });
 
+  // Handles updating the vector's components, magnitude, and angle
   const updateVectorDetails = useCallback((vector) => {
-    graphRef.current.updateVectorSum(vectors.current.a, vectors.current.b);
-    setSelectedVector(vector);
-    setVectorX(((vector.endX - vector.startX) / 10).toFixed(1));
-    setVectorY(((vector.endY - vector.startY) / 10).toFixed(1));
+    if (!vector) return;
+    const vectorXComponent = (vector.endX - vector.startX) / 10;
+    const vectorYComponent = (vector.startY - vector.endY) / 10;
+
+    graphInstanceRef.current.updateVectorSum(
+      vectorStorageRef.current.a,
+      vectorStorageRef.current.b
+    );
+
+    const angle =
+      Math.atan2(vectorYComponent, vectorXComponent) * (180 / Math.PI);
+    const magnitude = Math.sqrt(vectorXComponent ** 2 + vectorYComponent ** 2);
+
+    setVectorXComponent(vectorXComponent);
+    setVectorYComponent(vectorYComponent);
+    setVectorAngle(angle);
+    setVectorMagnitude(magnitude);
   }, []);
 
   useEffect(() => {
-    if (d3Container.current) {
-      d3.select(d3Container.current).selectAll("*").remove();
-      graphRef.current = new Graph(
-        d3Container.current,
-        500,
-        300,
-        updateVectorDetails,
-        setSelectedVector
-      );
-      const graph = graphRef.current;
+    const vector = vectorStorageRef.current[activeVector];
+    updateVectorDetails(vector);
+  }, [activeVector, updateVectorDetails]);
 
-      graph.drawAxes();
-      graph.drawGridLines();
+  const createVectorHandler = useCallback(
+    (...args) =>
+      createVector(
+        ...args,
+        graphInstanceRef.current,
+        setActiveVector,
+        updateVectorDetails
+      ),
+    [updateVectorDetails]
+  );
 
-      const vector1 = new Vector(
-        "a",
-        graph.svg,
-        0,
-        graph.height,
-        10 * graph.cellSize,
-        graph.height - 10 * graph.cellSize,
-        updateVectorDetails,
-        setSelectedVector
-      );
+  useEffect(() => {
+    if (!svgContainerRef.current) return;
+    d3.select(svgContainerRef.current).selectAll("*").remove();
 
-      const vector2 = new Vector(
-        "b",
-        graph.svg,
-        10 * graph.cellSize,
-        graph.height - 10 * graph.cellSize,
-        20 * graph.cellSize,
-        graph.height - 10 * graph.cellSize,
-        updateVectorDetails,
-        setSelectedVector
-      );
+    const newGraph = new Graph(svgContainerRef.current, 500, 300);
 
-      vectors.current.a = vector1;
-      vectors.current.b = vector2;
-      graph.updateVectorSum(vector1, vector2);
-    }
-  }, [setSelectedVector, updateVectorDetails]);
+    graphInstanceRef.current = newGraph;
 
-  const handleVectorXChange = (e) => {
-    const newX = parseFloat(e.target.value) * 10;
-    if (!isNaN(newX) && selectedVector.startX !== undefined) {
-      const vector = { ...selectedVector, endX: selectedVector.startX + newX };
-      vectors.current[selectedVector.name].updateCoordinates(
-        vector.startX,
-        vector.startY,
-        vector.endX,
-        vector.endY
-      );
-      updateVectorDetails(vector);
-    }
+    // Create vectors
+    vectorStorageRef.current.a = createVectorHandler("a", 0, 0, 3, 6, false);
+    vectorStorageRef.current.b = createVectorHandler("b", 0, 0, 11, 6, false);
+    vectorStorageRef.current.s = createVectorHandler("s", 0, 0, 0, 0, true);
+
+    newGraph.setVectorSum(vectorStorageRef.current.s);
+    newGraph.updateVectorSum(
+      vectorStorageRef.current.a,
+      vectorStorageRef.current.b
+    );
+  }, [createVectorHandler]);
+
+  const saveVector = () => {
+    const vector = vectorStorageRef.current[activeVector];
+    if (!vector || isNaN(vectorXComponent) || isNaN(vectorYComponent)) return;
+
+    const updatedVector = {
+      ...vector,
+      endX: vector.startX + vectorXComponent * 10,
+      endY: vector.startY - vectorYComponent * 10,
+    };
+
+    vectorStorageRef.current[activeVector].updateCoordinates(
+      updatedVector.startX,
+      updatedVector.startY,
+      updatedVector.endX,
+      updatedVector.endY
+    );
+
+    graphInstanceRef.current.updateVectorSum(
+      vectorStorageRef.current.a,
+      vectorStorageRef.current.b
+    );
   };
 
-  const handleVectorYChange = (e) => {
-    const newY = parseFloat(e.target.value) * 10;
-    if (!isNaN(newY) && selectedVector.startY !== undefined) {
-      const vector = { ...selectedVector, endY: selectedVector.startY + newY };
-      vectors.current[selectedVector.name].updateCoordinates(
-        vector.startX,
-        vector.startY,
-        vector.endX,
-        vector.endY
-      );
-      updateVectorDetails(vector);
+  const handleMagnitudeChange = (event) => {
+    setVectorMagnitude(event.target.value);
+    const magnitude = parseFloat(event.target.value);
+    if (isNaN(magnitude)) return;
+    const angleRadians = Math.atan2(vectorYComponent, vectorXComponent);
+
+    const newX = Math.cos(angleRadians) * magnitude;
+    const newY = Math.sin(angleRadians) * magnitude;
+
+    setVectorXComponent(newX);
+    setVectorYComponent(newY);
+  };
+
+  const handleAngleChange = (event) => {
+    setVectorAngle(event.target.value);
+    const angleDegrees = parseFloat(event.target.value);
+    if (isNaN(angleDegrees)) return;
+    const magnitude = Math.sqrt(vectorXComponent ** 2 + vectorYComponent ** 2);
+    const angleRadians = angleDegrees * (Math.PI / 180);
+
+    const newX = Math.cos(angleRadians) * magnitude;
+    const newY = Math.sin(angleRadians) * magnitude;
+
+    setVectorXComponent(newX);
+    setVectorYComponent(newY);
+  };
+
+  const handleVectorComponentChange = (dimension, value) => {
+    const vector = vectorStorageRef.current[activeVector];
+    if (!vector) return;
+
+    if (dimension === "X") {
+      setVectorXComponent(value);
+    } else if (dimension === "Y") {
+      setVectorYComponent(value);
     }
+
+    const updatedMagnitude = Math.sqrt(
+      Math.pow(dimension === "X" ? value : vectorXComponent, 2) +
+        Math.pow(dimension === "Y" ? value : vectorYComponent, 2)
+    );
+
+    const angleRadians = Math.atan2(
+      dimension === "Y" ? value : vectorYComponent,
+      dimension === "X" ? value : vectorXComponent
+    );
+
+    setVectorMagnitude(updatedMagnitude);
+    setVectorAngle((angleRadians * 180) / Math.PI);
   };
 
   return (
     <div className="App">
       <div className="vector-values">
         <div className="toggle-container">
-          <button className="toggle-button">—</button>
+          <button className="toggle-button" onClick={saveVector}>
+            &#x1F4BE;
+          </button>
         </div>
-        <div className="field-container">
-          |v|{" "}
-          <input
-            type="number"
-            className="vector-value-input"
-            value={
-              selectedVector.startX !== undefined
-                ? Math.sqrt(
-                    Math.pow(
-                      (selectedVector.endX - selectedVector.startX) / 10,
-                      2
-                    ) +
-                      Math.pow(
-                        (selectedVector.endY - selectedVector.startY) / 10,
-                        2
-                      )
-                  ).toFixed(1)
-                : ""
-            }
-            readOnly
-          />
-        </div>
-        <div className="field-container">
-          θ{" "}
-          <input
-            type="number"
-            className="vector-value-input"
-            value={
-              selectedVector.startX !== undefined
-                ? (
-                    Math.atan2(
-                      -(selectedVector.endY - selectedVector.startY) / 10,
-                      (selectedVector.endX - selectedVector.startX) / 10
-                    ) *
-                    (180 / Math.PI)
-                  ).toFixed(1)
-                : ""
-            }
-            readOnly
-          />
-        </div>
-        <div className="field-container">
-          v<sub>x</sub>{" "}
-          <input
-            type="number"
-            className="vector-value-input"
-            value={!isNaN(vectorX) ? vectorX : ""}
-            onChange={handleVectorXChange}
-          />
-        </div>
-        <div className="field-container">
-          v<sub>y</sub>{" "}
-          <input
-            type="number"
-            className="vector-value-input"
-            value={!isNaN(vectorY) ? vectorY : ""}
-            onChange={handleVectorYChange}
-          />
-        </div>
+        <VectorInput
+          label="|v|"
+          value={activeVector ? vectorMagnitude : ""}
+          onChange={handleMagnitudeChange}
+          readOnly={!activeVector || activeVector === "s"}
+        />
+        <VectorInput
+          label="θ"
+          value={activeVector ? vectorAngle : ""}
+          onChange={handleAngleChange}
+          readOnly={!activeVector || activeVector === "s"}
+        />
+        <VectorInput
+          label="v"
+          subLabel="x"
+          value={activeVector ? vectorXComponent : ""}
+          onChange={(e) => handleVectorComponentChange("X", e.target.value)}
+          readOnly={!activeVector || activeVector === "s"}
+        />
+        <VectorInput
+          label="v"
+          subLabel="y"
+          value={activeVector ? vectorYComponent : ""}
+          onChange={(e) => handleVectorComponentChange("Y", e.target.value)}
+          readOnly={!activeVector || activeVector === "s"}
+        />
       </div>
-      <div ref={d3Container} />
+      <div ref={svgContainerRef} />
     </div>
   );
 };

@@ -1,13 +1,28 @@
 import * as d3 from "d3";
-import Vector from "./Vector";
 
 class Graph {
-  constructor(container, width, height, onUpdate, onSelect) {
+  constructor(container, width, height) {
     this.container = container;
     this.width = width;
     this.height = height;
     this.margin = { top: 10, right: 30, bottom: 30, left: 60 };
     this.cellSize = 10;
+    this.svg = null;
+    this.xScale = d3.scaleLinear().domain([0, 50]).range([0, this.width]);
+    this.yScale = d3.scaleLinear().domain([0, 30]).range([this.height, 0]);
+    this.vectorSum = null; // Hold the sum vector
+
+    this.init();
+  }
+
+  init() {
+    this.creareSvg();
+    this.addArrowhead();
+    this.drawAxes();
+    this.drawGridLines();
+  }
+
+  creareSvg() {
     this.svg = d3
       .select(this.container)
       .append("svg")
@@ -15,13 +30,9 @@ class Graph {
       .attr("height", this.height + this.margin.top + this.margin.bottom)
       .append("g")
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+  }
 
-    this.xScale = d3.scaleLinear().domain([0, 50]).range([0, this.width]);
-    this.yScale = d3.scaleLinear().domain([0, 30]).range([this.height, 0]);
-    this.vectorSum = null; // Hold the sum vector
-    this.onSelect = onSelect; // Callback for when this vector is clicked
-    this.onUpdate = onUpdate; // Callback for when vector is updated
-
+  addArrowhead() {
     // Add arrowhead to the svg
     this.svg
       .append("defs")
@@ -102,31 +113,13 @@ class Graph {
     const sumX = v1x + v2x;
     const sumY = v1y + v2y;
 
-    if (this.vectorSum) {
-      // Use the current start position of the sum vector and update only the end position
-      this.vectorSum.endX = this.vectorSum.startX + sumX;
-      this.vectorSum.endY = this.vectorSum.startY + sumY;
-      this.vectorSum.update();
-    } else {
-      // Initially set the sum vector from a central or specific starting point
-      const startX = this.width / 2;
-      const startY = this.height / 2;
-      const endX = startX + sumX;
-      const endY = startY + sumY;
+    this.vectorSum.endX = this.vectorSum.startX + sumX;
+    this.vectorSum.endY = this.vectorSum.startY + sumY;
+    this.vectorSum.update();
+  }
 
-      this.vectorSum = new Vector(
-        "s",
-        this.svg,
-        startX,
-        startY,
-        endX,
-        endY,
-        null,
-        this.onSelect,
-        this.onUpdate,
-        true // This is the sum vector
-      );
-    }
+  setVectorSum(vector) {
+    this.vectorSum = vector;
   }
 }
 
