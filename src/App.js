@@ -146,10 +146,9 @@ const App = () => {
       updatedDetails.magnitude = Math.sqrt(
         updatedDetails.xComponent ** 2 + updatedDetails.yComponent ** 2
       );
-      updatedDetails.angle = Math.atan2(
-        updatedDetails.yComponent,
-        updatedDetails.xComponent
-      );
+      updatedDetails.angle =
+        Math.atan2(updatedDetails.yComponent, updatedDetails.xComponent) *
+        (180 / Math.PI);
     } else if (type === "magnitude") {
       magnitude = parsedValue;
       angleRadians = Math.atan2(yComponent, xComponent);
