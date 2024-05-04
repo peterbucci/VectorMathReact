@@ -50,7 +50,7 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  width: 500px;
+  width: 600px;
   margin-left: 30px;
   font-size: 12px;
   background-color: #f0f0f0;
@@ -58,21 +58,22 @@
   border-radius: 5px;
 }
 
-.vector-values > .toggle-container {
+.vector-values > .button-container {
   flex: 1;
   margin: 5px;
 }
 
-.vector-values > .toggle-container > .toggle-button {
+.vector-values > .button-container > button {
+  margin: 0 5px;
   border-radius: 2px;
   cursor: pointer;
 }
 
-.vector-values > .toggle-container > .toggle-button:hover {
+.vector-values > .button-container > button:hover {
   background-color: #e0e0e0;
 }
 
-.vector-values > .toggle-container > .toggle-button:active {
+.vector-values > .button-container > button:active {
   background-color: #d0d0d0;
 }
 
@@ -84,5 +85,22 @@
 
 .vector-value-input {
   margin: 0 5px;
-  width: 50px;
+  width: 70px;
+}
+
+.add-vector-button,
+.remove-vector-button {
+  margin: 0 0 0 5px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.add-vector-button:hover,
+.remove-vector-button:hover {
+  background-color: #e0e0e0;
+}
+
+.add-vector-button:active,
+.remove-vector-button:active {
+  background-color: #d0d0d0;
 }

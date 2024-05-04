@@ -2,15 +2,18 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import Graph from "./components/Graph";
 import VectorInput from "./components/VectorInput";
-import createVector from "./helpers/create_vector";
+import createVector, { renameVectors } from "./helpers/create_vector";
 import "./styles/App.css";
 
 const App = () => {
-  const svgContainerRef = useRef(null);
-  const graphInstanceRef = useRef(null);
-  const vectorStorageRef = useRef({});
+  const svgContainerRef = useRef(null); // Reference to the SVG container
+  const graphInstanceRef = useRef(null); // Reference to the Graph instance
+  const vectorStorageRef = useRef({}); // Reference to the vector storage
+  // State to keep track of the selected operation
   const [selectedOperation, setSelectedOperation] = useState("Addition");
+  // State to keep track of the active vector
   const [activeVector, setActiveVector] = useState(null);
+  // State to keep track of the vector details
   const [vectorDetails, setVectorDetails] = useState({
     magnitude: 0,
     angle: 0,
@@ -18,37 +21,47 @@ const App = () => {
     yComponent: 0,
   });
 
+  /**
+   * Function to perform the selected operation on the vectors
+   * and update the vector sum or difference
+   */
   const performOperation = useCallback(() => {
-    if (!vectorStorageRef.current.a || !vectorStorageRef.current.b) return;
-    switch (graphInstanceRef.current.selectedOperation) {
+    // Destructure the vector storage and remove the vector sum
+    const { s, ...vectorStorage } = vectorStorageRef.current;
+    const graphInstance = graphInstanceRef.current; // Reference to the Graph instance
+    if (vectorStorage < 3) return; // Return if there are less than 3 vectors
+    // Perform the selected operation
+    switch (graphInstance.selectedOperation) {
       case "Addition":
-        graphInstanceRef.current.updateVectorSum(
-          vectorStorageRef.current.a,
-          vectorStorageRef.current.b
-        );
+        graphInstance.updateVectorSum(Object.values(vectorStorage)); // Update the vector sum
         break;
       case "Subtraction":
-        graphInstanceRef.current.updateVectorSubtraction(
-          vectorStorageRef.current.a,
-          vectorStorageRef.current.b
-        );
+        graphInstance.updateVectorSubtraction(Object.values(vectorStorage)); // Update the vector difference
         break;
       default:
         break;
     }
   }, []);
 
-  // Handles updating the vector's components, magnitude, and angle
+  /**
+   * Function to update the vector details based on the active vector
+   * and calculate the magnitude, angle, x and y components of the active vector
+   * @param {Object} vector - The active vector
+   */
   const updateVectorDetails = useCallback(
     (vector) => {
-      if (!vector) return;
+      if (!vector) return; // Return if there is no active vector
+      /*
+       * Calculate the x and y components of the vector by dividing the difference between the end
+       * and start coordinates by 10 to scale the vector to the graph
+       */
       const x = (vector.endX - vector.startX) / 10;
       const y = (vector.startY - vector.endY) / 10;
 
-      performOperation();
+      performOperation(); // Perform the selected operation
 
-      const angle = Math.atan2(y, x) * (180 / Math.PI);
-      const magnitude = Math.sqrt(x ** 2 + y ** 2);
+      const angle = Math.atan2(y, x) * (180 / Math.PI); // Calculate the angle of the vector
+      const magnitude = Math.sqrt(x ** 2 + y ** 2); // Calculate the magnitude of the vector
 
       setVectorDetails((prev) => ({
         ...prev,
@@ -61,76 +74,82 @@ const App = () => {
     [performOperation]
   );
 
+  /**
+   * UseEffect hook to update the vector details when the active vector changes
+   */
   useEffect(() => {
-    const vector = vectorStorageRef.current[activeVector];
-    updateVectorDetails(vector);
+    const vector = vectorStorageRef.current[activeVector]; // Get the active vector
+    updateVectorDetails(vector); // Update the vector details
   }, [activeVector, updateVectorDetails]);
 
+  /**
+   * Function to create a new vector and update the vector storage
+   * @param {number} startX - The x-coordinate of the start point of the vector
+   * @param {number} startY - The y-coordinate of the start point of the vector
+   * @param {number} endX - The x-coordinate of the end point of the vector
+   * @param {number} endY - The y-coordinate of the end point of the vector
+   * @param {boolean} isSum - A boolean to determine if the vector is the sum vector
+   * @param {string} name - The name of the vector
+   */
   const createVectorHandler = useCallback(
-    (...args) =>
-      createVector(
-        ...args,
-        graphInstanceRef.current,
-        setActiveVector,
-        updateVectorDetails
-      ),
+    (...args) => {
+      // Create a new vector if there are less than 11 vectors
+      if (Object.values(vectorStorageRef.current).length < 11)
+        createVector(
+          vectorStorageRef,
+          graphInstanceRef,
+          setActiveVector,
+          updateVectorDetails,
+          ...args
+        );
+    },
     [updateVectorDetails]
   );
 
+  /**
+   * UseEffect hook to create the graph and vectors when the component mounts
+   */
   useEffect(() => {
+    // Return if the SVG container or Graph instance is not available
     if (!svgContainerRef.current || graphInstanceRef.current) return;
 
-    console.log("Creating graph");
+    // Remove all elements from the SVG container
     d3.select(svgContainerRef.current).selectAll("*").remove();
 
-    const newGraph = new Graph(svgContainerRef.current, 500, 300);
+    // Create a new Graph instance
+    const newGraph = new Graph(svgContainerRef.current, 600, 300);
 
+    // Update the Graph instance reference
     graphInstanceRef.current = newGraph;
 
-    // Create vectors
-    vectorStorageRef.current.a = createVectorHandler(
-      "a",
-      "blue",
-      15,
-      10,
-      15,
-      20,
-      false
-    );
-    vectorStorageRef.current.b = createVectorHandler(
-      "b",
-      "green",
-      15,
-      20,
-      35,
-      20,
-      false
-    );
-    vectorStorageRef.current.s = createVectorHandler(
-      "s",
-      "red",
-      15,
-      10,
-      0,
-      0,
-      true
-    );
+    // Create starting vectors
+    createVectorHandler(15, 10, 0, 0, true, "s");
+    createVectorHandler(15, 10, 15, 20);
+    createVectorHandler(15, 20, 35, 20);
+    createVectorHandler(15, 10, 0, 0);
 
+    // Set the vector sum and perform the operation
     newGraph.setVectorSum(vectorStorageRef.current.s);
     performOperation();
   }, [createVectorHandler, updateVectorDetails, performOperation]);
 
+  /**
+   * Function to save the vector details and update the vector coordinates
+   */
   const saveVector = () => {
-    const vector = vectorStorageRef.current[activeVector];
-    const { xComponent, yComponent } = vectorDetails;
+    const vector = vectorStorageRef.current[activeVector]; // Get the active vector
+    const { xComponent, yComponent } = vectorDetails; // Get the x and y components
+    // Return if the vector, x component or y component is not available
     if (!vector || isNaN(xComponent) || isNaN(yComponent)) return;
 
+    // Update the vector coordinates based on the x and y components
     const updatedVector = {
       ...vector,
       endX: vector.startX + xComponent * 10,
       endY: vector.startY - yComponent * 10,
     };
 
+    // Update the vector coordinates
     vectorStorageRef.current[activeVector].updateCoordinates(
       updatedVector.startX,
       updatedVector.startY,
@@ -138,78 +157,118 @@ const App = () => {
       updatedVector.endY
     );
 
-    performOperation();
+    performOperation(); // Perform the selected operation
   };
 
-  // Adjust magnitude or angle and update the x and y components accordingly
+  /**
+   * Function to handle the adjustment of the vector details based on the type
+   * If the type is xComponent or yComponent, the magnitude and angle are calculated
+   * If the type is magnitude or angle, the x and y components are calculated
+   * @param {string} type - The type of the vector detail
+   * @param {string} value - The value of the vector detail
+   */
   const handleVectorAdjust = (type, value) => {
-    const { xComponent, yComponent } = vectorDetails;
-    const updatedDetails = { ...vectorDetails };
-    const parsedValue = parseFloat(value);
-    let angleRadians, magnitude;
+    const { xComponent, yComponent } = vectorDetails; // Get the x and y components
+    const updatedDetails = { ...vectorDetails }; // Get the updated vector details
+    const parsedValue = parseFloat(value); // Parse the value to a float
+    let angleRadians, magnitude; // Initialize the angle in radians and magnitude
+    updatedDetails[type] = value; // Update the vector details based on the type
 
-    updatedDetails[type] = value;
+    // Return if the value is not a number
     if (isNaN(parsedValue)) {
       setVectorDetails(updatedDetails);
       return;
     }
 
+    // If the type is xComponent or yComponent, calculate the magnitude and angle
     if (type === "xComponent" || type === "yComponent") {
+      // To calculate the magnitude, use the Pythagorean theorem
       updatedDetails.magnitude = Math.sqrt(
         updatedDetails.xComponent ** 2 + updatedDetails.yComponent ** 2
       );
+      // To calculate the angle, use the arctangent function and convert to degrees by multiplying by 180/π
       updatedDetails.angle =
         Math.atan2(updatedDetails.yComponent, updatedDetails.xComponent) *
         (180 / Math.PI);
     } else if (type === "magnitude") {
-      magnitude = parsedValue;
-      angleRadians = Math.atan2(yComponent, xComponent);
-      updatedDetails.xComponent = Math.cos(angleRadians) * magnitude;
-      updatedDetails.yComponent = Math.sin(angleRadians) * magnitude;
+      // If the type is magnitude, calculate the x and y components
+      magnitude = parsedValue; // Set the magnitude to the parsed value
+      angleRadians = Math.atan2(yComponent, xComponent); // Calculate the angle using the arctangent function
+      updatedDetails.xComponent = Math.cos(angleRadians) * magnitude; // Calculate the x component
+      updatedDetails.yComponent = Math.sin(angleRadians) * magnitude; // Calculate the y component
     } else if (type === "angle") {
-      angleRadians = parsedValue * (Math.PI / 180);
-      magnitude = Math.sqrt(xComponent ** 2 + yComponent ** 2);
-      updatedDetails.xComponent = Math.cos(angleRadians) * magnitude;
-      updatedDetails.yComponent = Math.sin(angleRadians) * magnitude;
+      // If the type is angle, calculate the x and y components
+      angleRadians = parsedValue * (Math.PI / 180); // Convert the angle to radians by multiplying by π/180
+      magnitude = Math.sqrt(xComponent ** 2 + yComponent ** 2); // Calculate the magnitude using the Pythagorean theorem
+      updatedDetails.xComponent = Math.cos(angleRadians) * magnitude; // Calculate the x component
+      updatedDetails.yComponent = Math.sin(angleRadians) * magnitude; // Calculate the y component
     }
 
-    setVectorDetails(updatedDetails);
+    setVectorDetails(updatedDetails); // Update the vector details
+  };
+
+  /**
+   * Function to delete the active vector and update the vector storage
+   * @param {string} vector - The active vector
+   */
+  const handleVectorDelete = (vector) => {
+    // Return if the active vector is not available
+    if (vectorStorageRef.current[vector]) {
+      vectorStorageRef.current[vector].remove(); // Remove the active vector
+      delete vectorStorageRef.current[vector]; // Delete the active vector from the vector storage
+      renameVectors(vectorStorageRef); // Rename the vectors in the vector storage
+      performOperation(); // Perform the selected operation
+      setActiveVector(null); // Set the active vector to null
+    }
   };
 
   return (
     <div className="App">
       <div className="vector-values">
-        <div className="toggle-container">
-          <button className="toggle-button" onClick={saveVector}>
-            Update
-          </button>
-        </div>
-        <VectorInput
-          label={"|" + (activeVector || "v") + "|"}
-          value={activeVector ? vectorDetails.magnitude : ""}
-          onChange={(e) => handleVectorAdjust("magnitude", e.target.value)}
-          readOnly={!activeVector || activeVector === "s"}
-        />
-        <VectorInput
-          label="θ"
-          value={activeVector ? vectorDetails.angle : ""}
-          onChange={(e) => handleVectorAdjust("angle", e.target.value)}
-          readOnly={!activeVector || activeVector === "s"}
-        />
-        <VectorInput
-          label={activeVector || "v"}
-          subLabel="x"
-          value={activeVector ? vectorDetails.xComponent : ""}
-          onChange={(e) => handleVectorAdjust("xComponent", e.target.value)}
-          readOnly={!activeVector || activeVector === "s"}
-        />
-        <VectorInput
-          label={activeVector || "v"}
-          subLabel="y"
-          value={activeVector ? vectorDetails.yComponent : ""}
-          onChange={(e) => handleVectorAdjust("yComponent", e.target.value)}
-          readOnly={!activeVector || activeVector === "s"}
-        />
+        {activeVector ? (
+          <>
+            <div className="button-container">
+              <button
+                className="toggle"
+                onClick={saveVector}
+                disabled={activeVector === "s"}
+              >
+                Update
+              </button>
+              <button className="close" onClick={() => setActiveVector(null)}>
+                x
+              </button>
+            </div>
+            <VectorInput
+              label={"|" + (activeVector || "v") + "|"}
+              value={activeVector ? vectorDetails.magnitude : ""}
+              onChange={(e) => handleVectorAdjust("magnitude", e.target.value)}
+              readOnly={!activeVector || activeVector === "s"}
+            />
+            <VectorInput
+              label="θ"
+              value={activeVector ? vectorDetails.angle : ""}
+              onChange={(e) => handleVectorAdjust("angle", e.target.value)}
+              readOnly={!activeVector || activeVector === "s"}
+            />
+            <VectorInput
+              label={activeVector || "v"}
+              subLabel="x"
+              value={activeVector ? vectorDetails.xComponent : ""}
+              onChange={(e) => handleVectorAdjust("xComponent", e.target.value)}
+              readOnly={!activeVector || activeVector === "s"}
+            />
+            <VectorInput
+              label={activeVector || "v"}
+              subLabel="y"
+              value={activeVector ? vectorDetails.yComponent : ""}
+              onChange={(e) => handleVectorAdjust("yComponent", e.target.value)}
+              readOnly={!activeVector || activeVector === "s"}
+            />
+          </>
+        ) : (
+          <p>Select a vector to view details</p>
+        )}
       </div>
       <div ref={svgContainerRef} />
       <div>
@@ -225,6 +284,31 @@ const App = () => {
           <option value="Addition">Addition</option>
           <option value="Subtraction">Subtraction</option>
         </select>
+        <button
+          className="add-vector-button"
+          onClick={() => {
+            createVectorHandler();
+            setActiveVector(
+              vectorStorageRef.current[
+                Object.keys(vectorStorageRef.current).pop()
+              ].name
+            );
+          }}
+          disabled={Object.values(vectorStorageRef.current).length >= 11}
+        >
+          Add Vector
+        </button>
+        <button
+          className="remove-vector-button"
+          onClick={() => handleVectorDelete(activeVector)}
+          disabled={
+            !activeVector ||
+            activeVector === "s" ||
+            Object.values(vectorStorageRef.current).length < 2
+          }
+        >
+          Delete Vector
+        </button>
       </div>
     </div>
   );
