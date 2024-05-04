@@ -1,7 +1,11 @@
 {
-  "name": "react-grid-app",
+  "name": "vector-math",
+  "description": "A vector mathematics tool for addition and subtraction",
+  "author": "Peter Bucci",
   "version": "0.1.0",
   "private": true,
+  "main": "public/electron.js",
+  "homepage": "./",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -17,7 +21,12 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "electron-pack": "build --em.main=build/electron.js"
   },
   "eslintConfig": {
     "extends": [
@@ -36,5 +45,28 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "electron": "^30.0.2",
+    "electron-builder": "^24.13.3",
+    "concurrently": "^7.0.0"
+  },
+  "build": {
+    "appId": "app.web.vector-math",
+    "mac": {
+      "category": "public.app-category.education",
+      "icon": "public/icon.png"
+    },
+    "win": {
+      "target": "NSIS",
+      "icon": "public/icon.png"
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
   }
 }

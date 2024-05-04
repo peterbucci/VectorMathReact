@@ -104,3 +104,17 @@
 .remove-vector-button:active {
   background-color: #d0d0d0;
 }
+
+.github-container {
+  margin: 10px;
+  font-size: 18px;
+}
+
+.github-container a {
+  color: #9c0f0f;
+  text-decoration: none;
+}
+
+.github-container a:hover {
+  text-decoration: underline;
+}

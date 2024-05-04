@@ -126,7 +126,6 @@ const App = () => {
     createVectorHandler(15, 10, 0, 0, true, "s");
     createVectorHandler(15, 10, 15, 20);
     createVectorHandler(15, 20, 35, 20);
-    createVectorHandler(15, 10, 0, 0);
 
     // Set the vector sum and perform the operation
     newGraph.setVectorSum(vectorStorageRef.current.s);
@@ -309,6 +308,16 @@ const App = () => {
         >
           Delete Vector
         </button>
+      </div>
+      <div className="github-container">
+        Check out the code on{" "}
+        <a
+          href="https://github.com/peterbucci/VectorMathReact"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Github
+        </a>
       </div>
     </div>
   );
