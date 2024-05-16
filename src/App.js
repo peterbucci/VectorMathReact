@@ -20,6 +20,7 @@ const App = () => {
     xComponent: 0,
     yComponent: 0,
   });
+  const [lockToGrid, setLockToGrid] = useState(true); // State to keep track of the lock to grid setting
 
   /**
    * Function to perform the selected operation on the vectors
@@ -117,7 +118,7 @@ const App = () => {
     d3.select(svgContainerRef.current).selectAll("*").remove();
 
     // Create a new Graph instance
-    const newGraph = new Graph(svgContainerRef.current, 55, 35);
+    const newGraph = new Graph(svgContainerRef.current, 55, 35, lockToGrid);
 
     // Update the Graph instance reference
     graphInstanceRef.current = newGraph;
@@ -132,6 +133,10 @@ const App = () => {
     performOperation();
   }, [createVectorHandler, updateVectorDetails, performOperation]);
 
+  useEffect(() => {
+    saveVector();
+  }, [lockToGrid]);
+
   /**
    * Function to save the vector details and update the vector coordinates
    */
@@ -141,20 +146,19 @@ const App = () => {
     // Return if the vector, x component or y component is not available
     if (!vector || isNaN(xComponent) || isNaN(yComponent)) return;
 
-    // Update the vector coordinates based on the x and y components
-    const updatedVector = {
-      ...vector,
-      endX: vector.startX + xComponent * 10,
-      endY: vector.startY - yComponent * 10,
-    };
+    // Calculate the new end coordinates based on the x and y components
+    let newEndX = vector.startX + xComponent * 10;
+    let newEndY = vector.startY - yComponent * 10;
+
+    // If lockToGrid is true, snap to the nearest grid point (multiple of 10)
+    if (lockToGrid) {
+      newEndX = Math.round(newEndX / 10) * 10;
+      newEndY = Math.round(newEndY / 10) * 10;
+    }
 
     // Update the vector coordinates
-    vectorStorageRef.current[activeVector].updateCoordinates(
-      updatedVector.startX,
-      updatedVector.startY,
-      updatedVector.endX,
-      updatedVector.endY
-    );
+    vector.updateCoordinates(vector.startX, vector.startY, newEndX, newEndY);
+    updateVectorDetails({ ...vector, endX: newEndX, endY: newEndY }); // Update the vector details
 
     performOperation(); // Perform the selected operation
   };
@@ -169,15 +173,17 @@ const App = () => {
   const handleVectorAdjust = (type, value) => {
     const { xComponent, yComponent } = vectorDetails; // Get the x and y components
     const updatedDetails = { ...vectorDetails }; // Get the updated vector details
-    const parsedValue = parseFloat(value); // Parse the value to a float
-    let angleRadians, magnitude; // Initialize the angle in radians and magnitude
-    updatedDetails[type] = value; // Update the vector details based on the type
 
     // Return if the value is not a number
-    if (isNaN(parsedValue)) {
+    if (value === "") {
+      updatedDetails[type] = value;
       setVectorDetails(updatedDetails);
       return;
     }
+
+    const parsedValue = parseFloat(value); // Parse the value to a float
+    let angleRadians, magnitude; // Initialize the angle in radians and magnitude
+    updatedDetails[type] = parsedValue; // Update the vector details based on the type
 
     // If the type is xComponent or yComponent, calculate the magnitude and angle
     if (type === "xComponent" || type === "yComponent") {
@@ -203,6 +209,14 @@ const App = () => {
       updatedDetails.yComponent = Math.sin(angleRadians) * magnitude; // Calculate the y component
     }
 
+    // Correct for floating-point precision errors
+    updatedDetails.xComponent = parseFloat(
+      updatedDetails.xComponent.toFixed(6)
+    );
+    updatedDetails.yComponent = parseFloat(
+      updatedDetails.yComponent.toFixed(6)
+    );
+
     setVectorDetails(updatedDetails); // Update the vector details
   };
 
@@ -218,6 +232,16 @@ const App = () => {
       renameVectors(vectorStorageRef); // Rename the vectors in the vector storage
       performOperation(); // Perform the selected operation
       setActiveVector(null); // Set the active vector to null
+    }
+  };
+
+  const openExternalLink = (url) => {
+    // Check if the electron shell module is available
+    if (window.require) {
+      const { shell } = window.require("electron");
+      shell.openExternal(url);
+    } else {
+      window.open(url, "_blank");
     }
   };
 
@@ -271,6 +295,18 @@ const App = () => {
       </div>
       <div ref={svgContainerRef} />
       <div>
+        <input
+          type="checkbox"
+          id="lock-to-grid"
+          checked={lockToGrid}
+          onChange={(e) => {
+            graphInstanceRef.current.lockToGrid = e.target.checked;
+            setLockToGrid(e.target.checked);
+          }}
+        />
+        <label htmlFor="lock-to-grid">Lock vectors to grid lines</label>
+      </div>
+      <div>
         <label>Operation: </label>
         <select
           value={selectedOperation}
@@ -312,9 +348,11 @@ const App = () => {
       <div className="github-container">
         Check out the code on{" "}
         <a
-          href="https://github.com/peterbucci/VectorMathReact"
-          target="_blank"
-          rel="noreferrer"
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            openExternalLink("https://github.com/peterbucci/VectorMathReact");
+          }}
         >
           Github
         </a>

@@ -58,6 +58,7 @@ const createVector = (
   vectors[newLetter] = new Vector(
     newLetter,
     color,
+    graph,
     graph.svg,
     newStartX * graph.cellSize,
     graph.height - newStartY * graph.cellSize,

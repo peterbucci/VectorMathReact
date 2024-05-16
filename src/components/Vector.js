@@ -17,6 +17,7 @@ class Vector {
   constructor(
     name,
     color,
+    graph,
     svg,
     startX,
     startY,
@@ -29,6 +30,7 @@ class Vector {
     this.name = name;
     this.color = color;
     this.arrowheadSize = 4; // Size of the arrowhead
+    this.graph = graph;
     this.svg = svg;
     this.startX = startX;
     this.startY = startY;
@@ -89,26 +91,34 @@ class Vector {
    * @param {object} event - Event object for the drag event
    */
   dragged(event) {
-    this.dxAccum += event.dx; // Accumulate drag distance in X
-    this.dyAccum += event.dy; // Accumulate drag distance in Y
+    if (this.graph.lockToGrid) {
+      this.dxAccum += event.dx; // Accumulate drag distance in X
+      this.dyAccum += event.dy; // Accumulate drag distance in Y
 
-    // Calculate the new position based on the accumulated distance
-    const newStartX = this.startX + this.dxAccum;
-    const newStartY = this.startY + this.dyAccum;
-    const newEndX = this.endX + this.dxAccum;
-    const newEndY = this.endY + this.dyAccum;
+      // Calculate the new position based on the accumulated distance
+      const newStartX = this.startX + this.dxAccum;
+      const newStartY = this.startY + this.dyAccum;
+      const newEndX = this.endX + this.dxAccum;
+      const newEndY = this.endY + this.dyAccum;
 
-    // Snap to the nearest grid point (multiple of 10)
-    this.startX = Math.round(newStartX / 10) * 10;
-    this.startY = Math.round(newStartY / 10) * 10;
-    this.endX = Math.round(newEndX / 10) * 10;
-    this.endY = Math.round(newEndY / 10) * 10;
+      // Snap to the nearest grid point (multiple of 10)
+      this.startX = Math.round(newStartX / 10) * 10;
+      this.startY = Math.round(newStartY / 10) * 10;
+      this.endX = Math.round(newEndX / 10) * 10;
+      this.endY = Math.round(newEndY / 10) * 10;
+
+      // Reset accumulated distances
+      this.dxAccum = newStartX - this.startX;
+      this.dyAccum = newStartY - this.startY;
+    } else {
+      // Update the start and end coordinates based on the drag event
+      this.startX += event.dx;
+      this.startY += event.dy;
+      this.endX += event.dx;
+      this.endY += event.dy;
+    }
 
     this.update(); // Call the update method that redraws the vector
-
-    // Reset accumulated distances
-    this.dxAccum = newStartX - this.startX;
-    this.dyAccum = newStartY - this.startY;
   }
 
   /**
@@ -116,16 +126,26 @@ class Vector {
    * @param {object} event - Event object for the drag event
    */
   arrowheadDragged(event) {
-    this.dxAccum += event.dx; // Accumulate drag distance in X
-    this.dyAccum += event.dy; // Accumulate drag distance in Y
+    if (this.graph.lockToGrid) {
+      this.dxAccum += event.dx; // Accumulate drag distance in X
+      this.dyAccum += event.dy; // Accumulate drag distance in Y
 
-    // Calculate the new position based on the accumulated distance
-    const newEndX = this.endX + this.dxAccum;
-    const newEndY = this.endY + this.dyAccum;
+      // Calculate the new position based on the accumulated distance
+      const newEndX = this.endX + this.dxAccum;
+      const newEndY = this.endY + this.dyAccum;
 
-    // Snap to the nearest grid point (multiple of 10)
-    this.endX = Math.round(newEndX / 10) * 10;
-    this.endY = Math.round(newEndY / 10) * 10;
+      // Snap to the nearest grid point (multiple of 10)
+      this.endX = Math.round(newEndX / 10) * 10;
+      this.endY = Math.round(newEndY / 10) * 10;
+
+      // Reset accumulated distances
+      this.dxAccum = newEndX - this.endX;
+      this.dyAccum = newEndY - this.endY;
+    } else {
+      // Update the end coordinates based on the drag event
+      this.endX += event.dx;
+      this.endY += event.dy;
+    }
 
     this.update(); // Call the update method that redraws the vector
     // Call the onUpdate callback with the updated coordinates
@@ -139,10 +159,6 @@ class Vector {
       });
 
     this.onSelect(this.name); // Call onSelect to select the vector
-
-    // Reset accumulated distances
-    this.dxAccum = newEndX - this.endX;
-    this.dyAccum = newEndY - this.endY;
   }
 
   /**
@@ -201,10 +217,10 @@ class Vector {
    * @param {number} endY - Y coordinate of the end of the vector
    */
   updateCoordinates(startX, startY, endX, endY) {
-    this.startX = startX; // Update the start X coordinate
-    this.startY = startY; // Update the start Y coordinate
-    this.endX = endX; // Update the end X coordinate
-    this.endY = endY; // Update the end Y coordinate
+    this.startX = startX;
+    this.startY = startY;
+    this.endX = endX;
+    this.endY = endY;
     this.update(); // Call the update method that redraws the vector
   }
 

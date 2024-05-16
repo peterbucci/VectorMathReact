@@ -7,7 +7,7 @@ class Graph {
    * @param {number} width - Width of the graph
    * @param {number} height - Height of the graph
    */
-  constructor(container, numXTicks, numYTicks) {
+  constructor(container, numXTicks, numYTicks, lockToGrid) {
     this.container = container;
     this.cellSize = 10;
     this.numXTicks = numXTicks;
@@ -15,6 +15,7 @@ class Graph {
     this.width = this.cellSize * numXTicks;
     this.height = this.cellSize * numYTicks;
     this.margin = { top: 10, right: 30, bottom: 30, left: 60 };
+    this.lockToGrid = lockToGrid;
     this.svg = null;
     this.xScale = d3
       .scaleLinear()
