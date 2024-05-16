@@ -7,19 +7,27 @@ class Graph {
    * @param {number} width - Width of the graph
    * @param {number} height - Height of the graph
    */
-  constructor(container, width, height) {
-    this.container = container; // Container element for the graph (e.g., "#graph")
-    this.width = width;
-    this.height = height;
-    this.margin = { top: 10, right: 30, bottom: 30, left: 60 }; // Margin for the graph
-    this.cellSize = 10; // Size of the grid cells
-    this.svg = null; // SVG element for the graph
-    this.xScale = d3.scaleLinear().domain([0, 50]).range([0, this.width]); // X scale for the graph
-    this.yScale = d3.scaleLinear().domain([0, 30]).range([this.height, 0]); // Y scale for the graph
-    this.vectorSum = null; // Hold the sum vector
-    this.selectedOperation = "Addition"; // Default operation is vector addition
+  constructor(container, numXTicks, numYTicks) {
+    this.container = container;
+    this.cellSize = 10;
+    this.numXTicks = numXTicks;
+    this.numYTicks = numYTicks;
+    this.width = this.cellSize * numXTicks;
+    this.height = this.cellSize * numYTicks;
+    this.margin = { top: 10, right: 30, bottom: 30, left: 60 };
+    this.svg = null;
+    this.xScale = d3
+      .scaleLinear()
+      .domain([0, numXTicks])
+      .range([0, this.width]);
+    this.yScale = d3
+      .scaleLinear()
+      .domain([0, numYTicks])
+      .range([this.height, 0]);
+    this.vectorSum = null;
+    this.selectedOperation = "Addition";
 
-    this.init(); // Initialize the graph
+    this.init();
   }
 
   /**
@@ -36,40 +44,33 @@ class Graph {
    * This method appends an SVG element to the container element
    */
   createSvg() {
-    // Append an SVG element to the container element
     this.svg = d3
       .select(this.container)
       .append("svg")
-      .attr("width", this.width + this.margin.left + this.margin.right) // Set the width of the SVG element to the width of the graph
-      .attr("height", this.height + this.margin.top + this.margin.bottom) // Set the height of the SVG element to the height of the graph
-      .append("g") // Append a group element to the SVG element
-      .attr("transform", `translate(${this.margin.left},${this.margin.top})`); // Translate the group element by the margin
+      .attr("width", this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
   }
 
-  /**
-   * Draw the axes for the graph
-   */
   drawAxes() {
-    // Draw the x-axis
     this.svg
       .append("g")
-      .attr("transform", `translate(0,${this.height})`) // Translate the x-axis to the bottom of the graph
+      .attr("transform", `translate(0,${this.height})`)
       .call(
         d3
-          .axisBottom(this.xScale) // Use the x-scale for the x-axis
-          .tickValues(d3.range(0, 51, 5)) // Set the tick values to multiples of 5
-          .tickFormat((d) => (d % 10 === 0 ? d : "")) // Format the tick labels
+          .axisBottom(this.xScale)
+          .tickValues(d3.range(0, this.numXTicks + 1, 5))
+          .tickFormat((d) => (d % this.cellSize === 0 ? d : ""))
       );
 
-    // Draw the y-axis
     this.svg.append("g").call(
       d3
-        .axisLeft(this.yScale) // Use the y-scale for the y-axis
-        .tickValues(d3.range(0, 31, 5)) // Set the tick values to multiples of 5
-        .tickFormat((d) => (d % 10 === 0 ? d : "")) // Format the tick labels
+        .axisLeft(this.yScale)
+        .tickValues(d3.range(0, this.numYTicks + 1, 5))
+        .tickFormat((d) => (d % this.cellSize === 0 ? d : ""))
     );
 
-    // Remove the zero tick from the axes
     this.svg.selectAll(".tick").each(function (d) {
       if (d === 0) {
         this.remove();
@@ -77,40 +78,33 @@ class Graph {
     });
   }
 
-  /**
-   * Draw the grid lines for the graph using the axes
-   */
   drawGridLines() {
-    // Draw the vertical grid lines
     this.svg
-      .append("g") // Append a group element to the SVG
-      .attr("class", "grid") // Set the class of the group element to "grid"
-      .attr("transform", `translate(0,${this.height})`) // Translate the grid lines to the bottom of the graph
+      .append("g")
+      .attr("class", "grid")
+      .attr("transform", `translate(0,${this.height})`)
       .call(
-        // Call the axis function
         d3
-          .axisBottom(this.xScale) // Use the x-scale for the x-axis
-          .ticks(50) // Set the number of ticks to 50
-          .tickSize(-this.height) // Set the size of the grid lines
-          .tickFormat(() => "") // Do not display tick labels
+          .axisBottom(this.xScale)
+          .ticks(this.width / this.cellSize)
+          .tickSize(-this.height)
+          .tickFormat(() => "")
       )
-      .selectAll(".tick") // Select all tick elements
-      .classed("tick--minor", (d) => d % 10 !== 0); // Add the class "tick--minor" to minor ticks
+      .selectAll(".tick")
+      .classed("tick--minor", (d) => d % this.cellSize !== 0);
 
-    // Draw the horizontal grid lines
     this.svg
-      .append("g") // Append a group element to the SVG
-      .attr("class", "grid") // Set the class of the group element to "grid"
+      .append("g")
+      .attr("class", "grid")
       .call(
-        // Call the axis function
         d3
-          .axisLeft(this.yScale) // Use the y-scale for the y-axis
-          .ticks(30) // Set the number of ticks to 30
-          .tickSize(-this.width) // Set the size of the grid lines
-          .tickFormat(() => "") // Do not display tick labels
+          .axisLeft(this.yScale)
+          .ticks(this.height / this.cellSize)
+          .tickSize(-this.width)
+          .tickFormat(() => "")
       )
-      .selectAll(".tick") // Select all tick elements
-      .classed("tick--minor", (d) => d % 10 !== 0); // Add the class "tick--minor" to minor ticks
+      .selectAll(".tick")
+      .classed("tick--minor", (d) => d % this.cellSize !== 0);
   }
 
   /**

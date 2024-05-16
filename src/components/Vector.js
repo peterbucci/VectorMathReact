@@ -28,11 +28,14 @@ class Vector {
   ) {
     this.name = name;
     this.color = color;
+    this.arrowheadSize = 4; // Size of the arrowhead
     this.svg = svg;
     this.startX = startX;
     this.startY = startY;
     this.endX = endX;
     this.endY = endY;
+    this.dxAccum = 0; // Accumulated drag distance in X
+    this.dyAccum = 0; // Accumulated drag distance in Y
     this.onUpdate = onUpdate; // Callback for when this vector is updated
     this.onSelect = onSelect; // Callback for when this vector is clicked
     this.isSum = isSum; // Flag to determine if this is a sum vector
@@ -86,11 +89,26 @@ class Vector {
    * @param {object} event - Event object for the drag event
    */
   dragged(event) {
-    this.startX = this.startX + event.dx; // Update the start X coordinate
-    this.startY = this.startY + event.dy; // Update the start Y coordinate
-    this.endX = this.endX + event.dx; // Update the end X coordinate
-    this.endY = this.endY + event.dy; // Update the end Y coordinate
+    this.dxAccum += event.dx; // Accumulate drag distance in X
+    this.dyAccum += event.dy; // Accumulate drag distance in Y
+
+    // Calculate the new position based on the accumulated distance
+    const newStartX = this.startX + this.dxAccum;
+    const newStartY = this.startY + this.dyAccum;
+    const newEndX = this.endX + this.dxAccum;
+    const newEndY = this.endY + this.dyAccum;
+
+    // Snap to the nearest grid point (multiple of 10)
+    this.startX = Math.round(newStartX / 10) * 10;
+    this.startY = Math.round(newStartY / 10) * 10;
+    this.endX = Math.round(newEndX / 10) * 10;
+    this.endY = Math.round(newEndY / 10) * 10;
+
     this.update(); // Call the update method that redraws the vector
+
+    // Reset accumulated distances
+    this.dxAccum = newStartX - this.startX;
+    this.dyAccum = newStartY - this.startY;
   }
 
   /**
@@ -98,8 +116,16 @@ class Vector {
    * @param {object} event - Event object for the drag event
    */
   arrowheadDragged(event) {
-    this.endX = this.endX + event.dx; // Update the end X coordinate
-    this.endY = this.endY + event.dy; // Update the end Y coordinate
+    this.dxAccum += event.dx; // Accumulate drag distance in X
+    this.dyAccum += event.dy; // Accumulate drag distance in Y
+
+    // Calculate the new position based on the accumulated distance
+    const newEndX = this.endX + this.dxAccum;
+    const newEndY = this.endY + this.dyAccum;
+
+    // Snap to the nearest grid point (multiple of 10)
+    this.endX = Math.round(newEndX / 10) * 10;
+    this.endY = Math.round(newEndY / 10) * 10;
 
     this.update(); // Call the update method that redraws the vector
     // Call the onUpdate callback with the updated coordinates
@@ -113,6 +139,10 @@ class Vector {
       });
 
     this.onSelect(this.name); // Call onSelect to select the vector
+
+    // Reset accumulated distances
+    this.dxAccum = newEndX - this.endX;
+    this.dyAccum = newEndY - this.endY;
   }
 
   /**
@@ -120,22 +150,29 @@ class Vector {
    * This method is called when the vector is moved or dragged
    */
   update() {
+    const dx = this.endX - this.startX; // Change in X
+    const dy = this.endY - this.startY; // Change in Y
+    const length = Math.sqrt(dx * dx + dy * dy); // Length of the vector
+    const angle = Math.atan2(dy, dx); // Angle in radians
+
+    // Adjust the end point to account for the arrowhead length
+    const adjustedEndX = this.endX - (this.arrowheadSize - 1) * Math.cos(angle);
+    const adjustedEndY = this.endY - (this.arrowheadSize - 1) * Math.sin(angle);
+
     // Update the position of the line based on the current coordinates
     this.line
       .attr("x1", this.startX)
       .attr("y1", this.startY)
-      .attr("x2", this.endX)
-      .attr("y2", this.endY);
+      .attr("x2", adjustedEndX)
+      .attr("y2", adjustedEndY);
 
     // Update the position of the arrowhead hitbox if it's not a sum vector
     if (!this.isSum)
       this.arrowheadHitbox.attr("cx", this.endX).attr("cy", this.endY);
 
     // Calculate new magnitude and angle based on current coordinates
-    const dx = this.endX - this.startX; // Change in X
-    const dy = this.endY - this.startY; // Change in Y
-    this.magnitude = (Math.sqrt(dx * dx + dy * dy) / 10).toFixed(2); // Round to 2 decimal places
-    this.angle = Math.atan2(dy, dx) * (180 / Math.PI); // Angle in degrees
+    this.magnitude = (length / 10).toFixed(2); // Round to 2 decimal places
+    this.angle = angle * (180 / Math.PI); // Angle in degrees
 
     // Adjust angle for label readability
     let labelAngle = this.angle;
@@ -194,10 +231,10 @@ class Vector {
       .append("marker")
       .attr("id", markerId)
       .attr("viewBox", "0 -5 10 10") // Set the viewport to contain the arrowhead
-      .attr("refX", 8) // Position of the tip of the arrowhead
+      .attr("refX", 10 - this.arrowheadSize / 2) // Position of the tip of the arrowhead
       .attr("refY", 0) // Position of the center of the arrowhead
-      .attr("markerWidth", 4)
-      .attr("markerHeight", 4)
+      .attr("markerWidth", this.arrowheadSize)
+      .attr("markerHeight", this.arrowheadSize)
       .attr("orient", "auto-start-reverse") // Ensures the arrowhead points correctly
       .append("path") // Add a path to the marker
       .attr("d", "M0,-5L10,0L0,5Z") // Path for a solid triangle

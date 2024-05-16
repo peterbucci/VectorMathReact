@@ -117,7 +117,7 @@ const App = () => {
     d3.select(svgContainerRef.current).selectAll("*").remove();
 
     // Create a new Graph instance
-    const newGraph = new Graph(svgContainerRef.current, 600, 300);
+    const newGraph = new Graph(svgContainerRef.current, 55, 35);
 
     // Update the Graph instance reference
     graphInstanceRef.current = newGraph;
