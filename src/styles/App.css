@@ -118,3 +118,16 @@
 .github-container a:hover {
   text-decoration: underline;
 }
+
+.github-button {
+  all: unset;
+  cursor: pointer;
+}
+
+.github-button:hover {
+  text-decoration: underline;
+}
+
+.github-button:active {
+  color: #9c0f0f;
+}
