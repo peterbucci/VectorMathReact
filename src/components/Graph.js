@@ -147,14 +147,6 @@ class Graph {
     this.resultantVector.endY = this.resultantVector.startY + differenceY; // Update the end Y coordinate of the sum vector
     this.resultantVector.update(); // Update the sum vector
   }
-
-  /**
-   * Set the sum vector for the graph
-   * @param {Object} vector - Sum vector to set
-   */
-  setResultantVector(vector) {
-    this.resultantVector = vector;
-  }
 }
 
 export default Graph;

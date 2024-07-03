@@ -3,7 +3,7 @@ import Graph from "./components/Graph";
 import VectorDetails from "./components/VectorDetails";
 import VectorControls from "./components/VectorControls";
 import VectorLock from "./components/VectorLock";
-import Footer from "./components/Footer";
+import GithubLink from "./components/GithubLink";
 import useVectorDetails from "./hooks/useVectorDetails";
 import createVector, { renameVectors } from "./helpers/create_vector";
 import "./styles/App.css";
@@ -90,7 +90,7 @@ const App = () => {
     createVectorHandler(15, 20, 35, 20);
 
     // Set the resultant vector and perform the operation
-    newGraph.setResultantVector(vectorStorageRef.current.s);
+    newGraph.resultantVector = vectorStorageRef.current.s;
     performOperation();
   }, [createVectorHandler, updateVectorDetails, performOperation, lockToGrid]);
 
@@ -200,7 +200,7 @@ const App = () => {
         lockToGrid={lockToGrid}
         handleVectorLockToggle={handleVectorLockToggle}
       />
-      <Footer />
+      <GithubLink />
     </div>
   );
 };

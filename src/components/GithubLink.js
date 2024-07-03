@@ -1,7 +1,7 @@
 import React from "react";
 import openExternalLink from "../helpers/open_external_link";
 
-const Footer = () => {
+const GithubLink = () => {
   return (
     <footer className="github-container">
       Check out the code on{" "}
@@ -18,4 +18,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default GithubLink;
