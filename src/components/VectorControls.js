@@ -7,6 +7,8 @@ const VectorControls = ({
   handleOperationChange,
   handleVectorAdd,
   handleVectorDelete,
+  lockToGrid,
+  handleVectorLockToggle,
 }) => {
   return (
     <div className="vector-controls">
@@ -19,20 +21,26 @@ const VectorControls = ({
       </div>
       <div>
         <button
-          className="add-vector-button"
+          className="styled-button"
           onClick={handleVectorAdd}
           disabled={numberOfVectors >= 11}
         >
           Add Vector
         </button>
         <button
-          className="remove-vector-button"
+          className="styled-button"
           onClick={handleVectorDelete}
           disabled={
             !activeVector || activeVector === "s" || numberOfVectors < 2
           }
         >
           Delete Vector
+        </button>
+        <button
+          className={`styled-button grid-lock` + (lockToGrid ? " locked" : "")}
+          onClick={handleVectorLockToggle}
+        >
+          Toggle Grid Lock
         </button>
       </div>
     </div>

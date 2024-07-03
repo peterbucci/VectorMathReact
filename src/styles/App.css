@@ -16,6 +16,7 @@
   justify-content: center;
   align-items: center;
   width: 600px;
+  height: 30px;
   margin-left: 30px;
   font-size: 12px;
   background-color: #f0f0f0;
@@ -28,27 +29,13 @@
   margin: 5px;
 }
 
-.vector-details > .button-container > button {
-  margin: 0 5px;
-  border-radius: 2px;
-  cursor: pointer;
-}
-
-.vector-details > .button-container > button:hover {
-  background-color: #e0e0e0;
-}
-
-.vector-details > .button-container > button:active {
-  background-color: #d0d0d0;
-}
-
-.vector-details > .field-container {
+.vector-details > .text-input-container {
   flex: 1;
   font-size: 16px;
   font-style: bold;
 }
 
-.vector-details-input {
+.vector-details > .text-input-container > input {
   margin: 0 5px;
   width: 70px;
 }
@@ -62,30 +49,13 @@ svg text {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  width: 400px;
+  width: 500px;
   margin-left: 30px;
   padding: 5px;
   font-size: 12px;
   background-color: #f0f0f0;
   border: 1px solid #bebebe;
   border-radius: 5px;
-}
-
-.add-vector-button,
-.remove-vector-button {
-  margin: 0 0 0 5px;
-  cursor: pointer;
-  border-radius: 2px;
-}
-
-.add-vector-button:hover,
-.remove-vector-button:hover {
-  background-color: #e0e0e0;
-}
-
-.add-vector-button:active,
-.remove-vector-button:active {
-  background-color: #d0d0d0;
 }
 
 .vector-lock {
@@ -117,4 +87,53 @@ svg text {
 
 .github-button:active {
   color: #9c0f0f;
+}
+
+.styled-button {
+  display: inline-block;
+  outline: 0;
+  appearance: none;
+  margin: 0 5px;
+  padding: 0px 6px;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  background-color: rgb(249, 251, 250);
+  border: 1px solid rgb(137, 151, 155);
+  box-shadow: rgb(6 22 33 / 30%) 0px 1px 2px;
+  color: rgb(61, 79, 88);
+  font-size: 14px;
+  font-weight: 400;
+  height: 20px;
+  transition: all 150ms ease-in-out 0s;
+}
+
+.styled-button:hover {
+  color: rgb(61, 79, 88);
+  background-color: rgb(242, 242, 242);
+  border: 1px solid rgb(93, 108, 116);
+  box-shadow: rgb(0 0 0 / 30%) 0px 2px 2px, rgb(231 238 236) 0px 0px 0px 1px;
+}
+
+.styled-button:active,
+.styled-button.locked {
+  box-shadow: #d6d6e7 0 3px 7px inset;
+  transform: translateY(2px);
+}
+
+.styled-button.locked {
+  background-color: rgb(242, 242, 242);
+}
+
+.styled-button:disabled {
+  color: rgb(137, 151, 155);
+  background-color: rgb(249, 251, 250);
+  border: 1px solid rgb(137, 151, 155);
+  box-shadow: rgb(6 22 33 / 30%) 0px 1px 2px;
+  cursor: not-allowed;
+}
+
+.styled-text-input:focus,
+select:focus {
+  outline: 1px solid rgb(197, 197, 197);
 }

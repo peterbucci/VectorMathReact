@@ -18,14 +18,14 @@ const VectorInput = ({
   readOnly = false,
 }) => {
   return (
-    <div className="field-container">
+    <div className="text-input-container">
       <label>
         {label}
         {subLabel && <sub>{subLabel}</sub>}
       </label>
       <input
         type="number"
-        className="vector-details-input"
+        className="styled-text-input"
         value={value}
         onChange={onChange}
         readOnly={readOnly}

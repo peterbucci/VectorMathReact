@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Graph from "./components/Graph";
 import VectorDetails from "./components/VectorDetails";
 import VectorControls from "./components/VectorControls";
-import VectorLock from "./components/VectorLock";
 import GithubLink from "./components/GithubLink";
 import useVectorDetails from "./hooks/useVectorDetails";
 import createVector, { renameVectors } from "./helpers/create_vector";
@@ -38,7 +37,7 @@ const App = () => {
     }
   }, []);
 
-  const { vectorDetails, updateVectorDetails, handleVectorAdjust } =
+  const { vectorDetails, updateVectorDetails, onVectorInputChange } =
     useVectorDetails(performOperation);
 
   /**
@@ -172,9 +171,9 @@ const App = () => {
    * Function to toggle the lock to grid feature
    * @param {Object} e - The event object
    */
-  const handleVectorLockToggle = (e) => {
-    graphInstanceRef.current.lockToGrid = e.target.checked;
-    setLockToGrid(e.target.checked);
+  const handleVectorLockToggle = () => {
+    graphInstanceRef.current.lockToGrid = !lockToGrid;
+    setLockToGrid(!lockToGrid);
     saveVector();
   };
 
@@ -183,7 +182,7 @@ const App = () => {
       <VectorDetails
         activeVector={activeVector}
         vectorDetails={vectorDetails}
-        handleVectorAdjust={handleVectorAdjust}
+        onVectorInputChange={onVectorInputChange}
         saveVector={saveVector}
         setActiveVector={setActiveVector}
       />
@@ -195,8 +194,6 @@ const App = () => {
         handleOperationChange={handleOperationChange}
         handleVectorAdd={handleVectorAdd}
         handleVectorDelete={handleVectorDelete}
-      />
-      <VectorLock
         lockToGrid={lockToGrid}
         handleVectorLockToggle={handleVectorLockToggle}
       />

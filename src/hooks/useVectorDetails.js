@@ -55,7 +55,7 @@ const useVectorDetails = (performOperation) => {
    * @param {string} type - The type of the vector detail
    * @param {string} value - The value of the vector detail
    */
-  const handleVectorAdjust = (type, value) => {
+  const onVectorInputChange = (type, value) => {
     const { xComponent, yComponent } = vectorDetails;
     const updatedDetails = { ...vectorDetails };
 
@@ -100,7 +100,7 @@ const useVectorDetails = (performOperation) => {
     setVectorDetails(updatedDetails);
   };
 
-  return { vectorDetails, updateVectorDetails, handleVectorAdjust };
+  return { vectorDetails, updateVectorDetails, onVectorInputChange };
 };
 
 export default useVectorDetails;
