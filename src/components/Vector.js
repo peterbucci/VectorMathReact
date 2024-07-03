@@ -10,7 +10,7 @@ class Vector {
    * @param {number} startY - Y coordinate of the start of the vector
    * @param {number} endX - X coordinate of the end of the vector
    * @param {number} endY - Y coordinate of the end of the vector
-   * @param {boolean} isSum - Flag to determine if this is a sum vector
+   * @param {boolean} isResultant - Flag to determine if this is the resultant vector
    * @param {function} onUpdate - Callback for when this vector is updated
    * @param {function} onSelect - Callback for when this vector is clicked
    */
@@ -23,7 +23,7 @@ class Vector {
     startY,
     endX,
     endY,
-    isSum,
+    isResultant,
     onUpdate,
     onSelect
   ) {
@@ -40,15 +40,20 @@ class Vector {
     this.dyAccum = 0; // Accumulated drag distance in Y
     this.onUpdate = onUpdate; // Callback for when this vector is updated
     this.onSelect = onSelect; // Callback for when this vector is clicked
-    this.isSum = isSum; // Flag to determine if this is a sum vector
-    this.magnitude = 0; // Magnitude of the vector
-    this.angle = 0; // Initialize angle to 0
-    this.label = null; // Label element for the vector
+    this.isResultant = isResultant; // Flag to determine if this is the resultant vector
+    this.magnitude = 0;
+    this.angle = 0;
+    this.label = null;
+
     this.draw(); // Draw the vector on the SVG
   }
 
+  /**
+   * Draw the vector on the SVG
+   * This method creates the line, arrowhead, label, and hitbox elements
+   */
   draw() {
-    this.createArrowhead(this.color, this.name + "-arrowhead"); // Create arrowhead for the vector
+    this.createArrowhead(this.color, this.name + "-arrowhead");
 
     // Create the line element
     this.line = this.svg
@@ -64,12 +69,12 @@ class Vector {
       .on("mousedown", () => this.onSelect(this.name)) // Call onSelect when the line is clicked
       .call(d3.drag().on("drag", this.dragged.bind(this))); // Enable dragging for the line
 
-    // Create hitbox for the arrowhead to enable dragging the end of the vector if it's not a sum vector
-    if (!this.isSum)
+    // Create hitbox for the arrowhead to enable dragging the end of the vector if it's not the resultant vector
+    if (!this.isResultant)
       this.arrowheadHitbox = this.svg
         .append("circle")
-        .attr("cx", this.endX) // X coordinate of the hitbox
-        .attr("cy", this.endY) // Y coordinate of the hitbox
+        .attr("cx", this.endX) // X coordinate of the center of the hitbox
+        .attr("cy", this.endY) // Y coordinate of the center of the hitbox
         .attr("r", 10) // Radius of the hitbox
         .attr("fill", "transparent") // Make the hitbox transparent
         .style("cursor", "pointer") // Change cursor to pointer when hovering over the hitbox
@@ -119,6 +124,8 @@ class Vector {
     }
 
     this.update(); // Call the update method that redraws the vector
+
+    this.onSelect(this.name); // Call onSelect to set the active vector
   }
 
   /**
@@ -148,7 +155,8 @@ class Vector {
     }
 
     this.update(); // Call the update method that redraws the vector
-    // Call the onUpdate callback with the updated coordinates
+
+    // This is a callback to update the vector details
     if (this.onUpdate)
       this.onUpdate({
         name: this.name,
@@ -158,7 +166,7 @@ class Vector {
         endY: this.endY,
       });
 
-    this.onSelect(this.name); // Call onSelect to select the vector
+    this.onSelect(this.name); // Call onSelect to set the active vector
   }
 
   /**
@@ -183,7 +191,7 @@ class Vector {
       .attr("y2", adjustedEndY);
 
     // Update the position of the arrowhead hitbox if it's not a sum vector
-    if (!this.isSum)
+    if (!this.isResultant)
       this.arrowheadHitbox.attr("cx", this.endX).attr("cy", this.endY);
 
     // Calculate new magnitude and angle based on current coordinates

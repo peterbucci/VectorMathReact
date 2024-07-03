@@ -1,5 +1,4 @@
 import React from "react";
-import LabelWithSubscript from "./LabelWithSubscript";
 
 /**
  * A component that represents a single input field for a vector value.
@@ -20,14 +19,13 @@ const VectorInput = ({
 }) => {
   return (
     <div className="field-container">
-      {subLabel ? (
-        <LabelWithSubscript main={label} sub={subLabel} />
-      ) : (
-        <label>{label}</label>
-      )}
+      <label>
+        {label}
+        {subLabel && <sub>{subLabel}</sub>}
+      </label>
       <input
         type="number"
-        className="vector-value-input"
+        className="vector-details-input"
         value={value}
         onChange={onChange}
         readOnly={readOnly}

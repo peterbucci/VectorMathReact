@@ -1,5 +1,11 @@
 import { useCallback, useState } from "react";
 
+const calculateMagnitude = (x, y) => Math.sqrt(x ** 2 + y ** 2);
+const calculateAngleRadians = (x, y) => Math.atan2(y, x);
+const toDegrees = (radians) => radians * (180 / Math.PI);
+const toRadians = (degrees) => degrees * (Math.PI / 180);
+const calculateAngleDegrees = (x, y) => toDegrees(calculateAngleRadians(x, y));
+
 const useVectorDetails = (performOperation) => {
   const [vectorDetails, setVectorDetails] = useState({
     magnitude: 0,
@@ -9,13 +15,14 @@ const useVectorDetails = (performOperation) => {
   });
 
   /**
-   * Function to update the vector details based on the active vector
-   * and calculate the magnitude, angle, x and y components of the active vector
+   * Function to calculate the magnitude, angle, x and y components of the active vector and
+   * update the vector details.
    * @param {Object} vector - The active vector
    */
   const updateVectorDetails = useCallback(
     (vector) => {
-      if (!vector) return; // Return if there is no active vector
+      if (!vector) return;
+
       /*
        * Calculate the x and y components of the vector by dividing the difference between the end
        * and start coordinates by 10 to scale the vector to the graph
@@ -23,10 +30,10 @@ const useVectorDetails = (performOperation) => {
       const x = (vector.endX - vector.startX) / 10;
       const y = (vector.startY - vector.endY) / 10;
 
-      performOperation(); // Perform the selected operation
+      performOperation();
 
-      const angle = Math.atan2(y, x) * (180 / Math.PI); // Calculate the angle of the vector
-      const magnitude = Math.sqrt(x ** 2 + y ** 2); // Calculate the magnitude of the vector
+      const angle = calculateAngleDegrees(x, y);
+      const magnitude = calculateMagnitude(x, y);
 
       setVectorDetails((prev) => ({
         ...prev,
@@ -40,60 +47,57 @@ const useVectorDetails = (performOperation) => {
   );
 
   /**
-   * Function to handle the adjustment of the vector details based on the type
-   * If the type is xComponent or yComponent, the magnitude and angle are calculated
-   * If the type is magnitude or angle, the x and y components are calculated
+   * Function to handle the adjustment of the vector details based on what the user
+   * updated in the text fields above the graph.
+   *
+   * If the xComponent or yComponent is updated, the magnitude and angle are calculated
+   * If the magnitude or angle is updated, the x and y components are calculated
    * @param {string} type - The type of the vector detail
    * @param {string} value - The value of the vector detail
    */
   const handleVectorAdjust = (type, value) => {
-    const { xComponent, yComponent } = vectorDetails; // Get the x and y components
-    const updatedDetails = { ...vectorDetails }; // Get the updated vector details
+    const { xComponent, yComponent } = vectorDetails;
+    const updatedDetails = { ...vectorDetails };
 
-    // Return if the value is not a number
+    // Return if the text field is empty
     if (value === "") {
       updatedDetails[type] = value;
       setVectorDetails(updatedDetails);
       return;
     }
 
-    const parsedValue = parseFloat(value); // Parse the value to a float
-    let angleRadians, magnitude; // Initialize the angle in radians and magnitude
-    updatedDetails[type] = parsedValue; // Update the vector details based on the type
+    const parsedValue = parseFloat(value);
+    updatedDetails[type] = parsedValue;
 
-    // If the type is xComponent or yComponent, calculate the magnitude and angle
-    if (type === "xComponent" || type === "yComponent") {
-      // To calculate the magnitude, use the Pythagorean theorem
-      updatedDetails.magnitude = Math.sqrt(
-        updatedDetails.xComponent ** 2 + updatedDetails.yComponent ** 2
+    const fixFloatingPointError = (num) => parseFloat(num.toFixed(6));
+
+    const updateXandYComponents = (angleRadians, magnitude) => {
+      updatedDetails.xComponent = fixFloatingPointError(
+        Math.cos(angleRadians) * magnitude
       );
-      // To calculate the angle, use the arctangent function and convert to degrees by multiplying by 180/π
-      updatedDetails.angle =
-        Math.atan2(updatedDetails.yComponent, updatedDetails.xComponent) *
-        (180 / Math.PI);
+      updatedDetails.yComponent = fixFloatingPointError(
+        Math.sin(angleRadians) * magnitude
+      );
+    };
+
+    if (type === "xComponent" || type === "yComponent") {
+      const { xComponent: x, yComponent: y } = updatedDetails;
+
+      updatedDetails.magnitude = calculateMagnitude(x, y);
+      updatedDetails.angle = calculateAngleDegrees(x, y);
     } else if (type === "magnitude") {
-      // If the type is magnitude, calculate the x and y components
-      magnitude = parsedValue; // Set the magnitude to the parsed value
-      angleRadians = Math.atan2(yComponent, xComponent); // Calculate the angle using the arctangent function
-      updatedDetails.xComponent = Math.cos(angleRadians) * magnitude; // Calculate the x component
-      updatedDetails.yComponent = Math.sin(angleRadians) * magnitude; // Calculate the y component
+      updateXandYComponents(
+        calculateAngleRadians(xComponent, yComponent),
+        parsedValue
+      );
     } else if (type === "angle") {
-      // If the type is angle, calculate the x and y components
-      angleRadians = parsedValue * (Math.PI / 180); // Convert the angle to radians by multiplying by π/180
-      magnitude = Math.sqrt(xComponent ** 2 + yComponent ** 2); // Calculate the magnitude using the Pythagorean theorem
-      updatedDetails.xComponent = Math.cos(angleRadians) * magnitude; // Calculate the x component
-      updatedDetails.yComponent = Math.sin(angleRadians) * magnitude; // Calculate the y component
+      updateXandYComponents(
+        toRadians(parsedValue),
+        calculateMagnitude(xComponent, yComponent)
+      );
     }
 
-    // Correct for floating-point precision errors
-    updatedDetails.xComponent = parseFloat(
-      updatedDetails.xComponent.toFixed(6)
-    );
-    updatedDetails.yComponent = parseFloat(
-      updatedDetails.yComponent.toFixed(6)
-    );
-
-    setVectorDetails(updatedDetails); // Update the vector details
+    setVectorDetails(updatedDetails);
   };
 
   return { vectorDetails, updateVectorDetails, handleVectorAdjust };

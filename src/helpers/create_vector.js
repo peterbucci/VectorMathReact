@@ -1,6 +1,6 @@
 import Vector from "../components/Vector";
 
-// array of 25 colors
+// an array of 25 colors to assign to the vectors
 const colors = [
   "red",
   "blue",
@@ -25,7 +25,7 @@ const colors = [
  * @param {number} startY - The start Y coordinate of the vector
  * @param {number} endX - The end X coordinate of the vector
  * @param {number} endY - The end Y coordinate of the vector
- * @param {boolean} isSum - Whether the vector is a sum vector
+ * @param {boolean} isResultant - Whether the vector is the resultant vector
  * @param {string} letter - The letter to assign to the vector
  */
 const createVector = (
@@ -37,11 +37,12 @@ const createVector = (
   startY,
   endX,
   endY,
-  isSum,
+  isResultant,
   letter
 ) => {
-  const vectors = vectorStorageRef.current; // Get the current vector storage
-  const graph = graphInstanceRef.current; // Get the current graph instance
+  const vectors = vectorStorageRef.current;
+  const graph = graphInstanceRef.current;
+
   // Create a new vector with the given parameters or default values
   const newLetter = letter
     ? letter
@@ -54,7 +55,6 @@ const createVector = (
   const newEndX = endX ? endX : 10; // Default end X coordinate
   const newEndY = endY ? endY : 10; // Default end Y coordinate
 
-  // Create a new vector and add it to the vector storage
   vectors[newLetter] = new Vector(
     newLetter,
     color,
@@ -64,26 +64,29 @@ const createVector = (
     graph.height - newStartY * graph.cellSize,
     newEndX * graph.cellSize,
     graph.height - newEndY * graph.cellSize,
-    isSum,
+    isResultant,
     updateVectorDetails,
     setActiveVector
   );
 };
 
 /**
- * Rename the vectors in the vector storage
+ * Rename the vectors in the vector storage. This is used when a vector is removed
+ * from the storage to ensure the vectors are named correctly.
  * @param {Object} vectorStorageRef - Reference to the vector storage
  */
 export const renameVectors = (vectorStorageRef) => {
-  const { s, ...vectorStorage } = vectorStorageRef.current; // Get the current vector storage without the sum vector
-  const vectors = Object.values(vectorStorage); // Get the vectors from the storage
+  const { s, ...vectorStorage } = vectorStorageRef.current;
+  const vectors = Object.values(vectorStorage);
+
   vectorStorageRef.current = { s }; // Reset the vector storage with the sum vector
+
   // Rename the vectors in the storage and update the color
   vectors.forEach((vector, index) => {
     const letter = String.fromCharCode(97 + index); // Get the letter for the vector
-    vector.setName(letter); // Set the name of the vector
+    vector.setName(letter);
     vector.setColor(colors[index + 1]); // Set the color of the vector
-    vectorStorageRef.current[letter] = vector; // Add the vector to the storage
+    vectorStorageRef.current[letter] = vector;
   });
 };
 

@@ -4,8 +4,9 @@ class Graph {
   /**
    * Constructor for the Graph class
    * @param {string} container - Container element for the graph
-   * @param {number} width - Width of the graph
-   * @param {number} height - Height of the graph
+   * @param {number} numXTicks - Number of X-axis ticks
+   * @param {number} numYTicks - Number of Y-axis ticks
+   * @param {boolean} lockToGrid - Whether to lock the vectors to the grid
    */
   constructor(container, numXTicks, numYTicks, lockToGrid) {
     this.container = container;
@@ -25,7 +26,7 @@ class Graph {
       .scaleLinear()
       .domain([0, numYTicks])
       .range([this.height, 0]);
-    this.vectorSum = null;
+    this.resultantVector = null;
     this.selectedOperation = "Addition";
 
     this.init();
@@ -109,63 +110,50 @@ class Graph {
   }
 
   /**
-   * Update the vector sum based on the selected operation
-   * @param {Array} arrayOfVectors - Array of vectors to perform the operation on
+   * Perform vector addition on the selected vectors and update the resultant vector
+   * @param {Array} arrayOfVectors - Array of vectors to add together
    */
-  updateVectorSum(arrayOfVectors) {
+  handleVectorAddition(arrayOfVectors) {
     // Initialize with the first vector's components or zero if the array is empty
-    let sumX =
-      arrayOfVectors.length > 0
-        ? arrayOfVectors[0].endX - arrayOfVectors[0].startX
-        : 0;
-    let sumY =
-      arrayOfVectors.length > 0
-        ? arrayOfVectors[0].endY - arrayOfVectors[0].startY
-        : 0;
+    let sumX = 0;
+    let sumY = 0;
 
     // Start from the second vector in the array and update the sum
-    arrayOfVectors.slice(1).forEach((vector) => {
+    arrayOfVectors.forEach((vector) => {
       sumX += vector.endX - vector.startX;
       sumY += vector.endY - vector.startY;
     });
 
-    this.vectorSum.endX = this.vectorSum.startX + sumX; // Update the end X coordinate of the sum vector
-    this.vectorSum.endY = this.vectorSum.startY + sumY; // Update the end Y coordinate of the sum vector
-    this.vectorSum.update(); // Update the sum vector
+    this.resultantVector.endX = this.resultantVector.startX + sumX; // Update the end X coordinate of the sum vector
+    this.resultantVector.endY = this.resultantVector.startY + sumY; // Update the end Y coordinate of the sum vector
+    this.resultantVector.update(); // Update the sum vector
   }
 
   /**
    * Update the vector subtraction based on the selected operation
    * @param {Array} arrayOfVectors - Array of vectors to perform the operation on
    */
-  updateVectorSubtraction(arrayOfVectors) {
-    // Initialize with the first vector's components or zero if the array is empty
-    let differenceX =
-      arrayOfVectors.length > 0
-        ? arrayOfVectors[0].endX - arrayOfVectors[0].startX
-        : 0;
-    let differenceY =
-      arrayOfVectors.length > 0
-        ? arrayOfVectors[0].endY - arrayOfVectors[0].startY
-        : 0;
+  handleVectorSubtraction(arrayOfVectors) {
+    let differenceX = 0;
+    let differenceY = 0;
 
     // Start from the second vector in the array and update the difference
-    arrayOfVectors.slice(1).forEach((vector) => {
+    arrayOfVectors.forEach((vector) => {
       differenceX -= vector.endX - vector.startX;
       differenceY -= vector.endY - vector.startY;
     });
 
-    this.vectorSum.endX = this.vectorSum.startX + differenceX; // Update the end X coordinate of the sum vector
-    this.vectorSum.endY = this.vectorSum.startY + differenceY; // Update the end Y coordinate of the sum vector
-    this.vectorSum.update(); // Update the sum vector
+    this.resultantVector.endX = this.resultantVector.startX + differenceX; // Update the end X coordinate of the sum vector
+    this.resultantVector.endY = this.resultantVector.startY + differenceY; // Update the end Y coordinate of the sum vector
+    this.resultantVector.update(); // Update the sum vector
   }
 
   /**
    * Set the sum vector for the graph
    * @param {Object} vector - Sum vector to set
    */
-  setVectorSum(vector) {
-    this.vectorSum = vector;
+  setResultantVector(vector) {
+    this.resultantVector = vector;
   }
 }
 

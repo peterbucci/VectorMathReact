@@ -5,47 +5,12 @@
   margin: 20px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .grid line {
-  stroke: #d3d3d3; /* Light grey color; adjust as needed */
-  stroke-opacity: 0.7; /* Optional: adjust the visibility */
+  stroke: #d3d3d3;
+  stroke-opacity: 0.7;
 }
 
-.vector-values {
+.vector-details {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -58,34 +23,52 @@
   border-radius: 5px;
 }
 
-.vector-values > .button-container {
+.vector-details > .button-container {
   flex: 1;
   margin: 5px;
 }
 
-.vector-values > .button-container > button {
+.vector-details > .button-container > button {
   margin: 0 5px;
   border-radius: 2px;
   cursor: pointer;
 }
 
-.vector-values > .button-container > button:hover {
+.vector-details > .button-container > button:hover {
   background-color: #e0e0e0;
 }
 
-.vector-values > .button-container > button:active {
+.vector-details > .button-container > button:active {
   background-color: #d0d0d0;
 }
 
-.vector-values > .field-container {
+.vector-details > .field-container {
   flex: 1;
   font-size: 16px;
   font-style: bold;
 }
 
-.vector-value-input {
+.vector-details-input {
   margin: 0 5px;
   width: 70px;
+}
+
+svg text {
+  user-select: none; /* Prevent svg text selection */
+}
+
+.vector-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 400px;
+  margin-left: 30px;
+  padding: 5px;
+  font-size: 12px;
+  background-color: #f0f0f0;
+  border: 1px solid #bebebe;
+  border-radius: 5px;
 }
 
 .add-vector-button,
@@ -103,6 +86,10 @@
 .add-vector-button:active,
 .remove-vector-button:active {
   background-color: #d0d0d0;
+}
+
+.vector-lock {
+  margin: 10px;
 }
 
 .github-container {
